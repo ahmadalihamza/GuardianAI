@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# Node / Next.js dashboard (frontend/)
+node_modules/
+.next/
+out/
+next-env.d.ts
+.vercel
+*.tsbuildinfo
+
+# Project specific
+data/uploads/*
+data/processed/*
+data/evidence/*
+!data/uploads/.gitkeep
+!data/processed/.gitkeep
+!data/evidence/.gitkeep
+data/*.db
+models/*.pt
+models/*.onnx
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Demo generated assets
+demo/sample_surveillance.mp4
+demo/raw_sample.mp4
+demo/bus.jpg
+
+# Database
+data/database/*.db

@@ -1,0 +1,23 @@
+# GuardianAI Requirements — backend only
+# Python 3.11 - 3.14 compatible
+#
+# The dashboard is a Next.js app in `frontend/`; its dependencies live in
+# `frontend/package.json` and are installed with npm, not pip.
+
+# Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+python-multipart>=0.0.9
+
+# Computer Vision
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+numpy>=1.26.4
+lap>=0.5.12
+
+# Validation & Config
+pydantic>=2.9.2
+python-dotenv>=1.0.1
+
+# Optional LLM Integration
+dashscope>=1.20.11
