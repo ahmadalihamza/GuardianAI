@@ -7,7 +7,7 @@ import { EmptyState, Panel } from "@/components/Panel";
 import ZonePicker from "@/components/ZonePicker";
 import { mediaUrl } from "@/lib/format";
 import { DEFAULT_ZONE } from "@/lib/types";
-import type { AnalyzeResult, Zone } from "@/lib/types";
+import type { AnalysisJob, AnalyzeResult, Zone } from "@/lib/types";
 import {
   UploadCloudIcon,
   VideoIcon,
@@ -18,7 +18,13 @@ import {
 
 const ACCEPTED_EXTENSIONS = [".mp4", ".avi", ".mov", ".mkv", ".webm"];
 
-type Phase = "idle" | "uploading" | "processing" | "done" | "error";
+type Phase =
+  | "idle"
+  | "uploading"
+  | "queued"
+  | "processing"
+  | "done"
+  | "error";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -93,12 +99,17 @@ export default function AnalyzeForm() {
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState(0);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStage, setAnalysisStage] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
 
   const xhrRef = useRef<XMLHttpRequest | null>(null);
-  const busy = phase === "uploading" || phase === "processing";
+  const pollAbortRef = useRef<AbortController | null>(null);
+  const analysisStartedAtRef = useRef<number | null>(null);
+  const busy =
+    phase === "uploading" || phase === "queued" || phase === "processing";
 
   useEffect(() => {
     if (!file) {
@@ -111,8 +122,9 @@ export default function AnalyzeForm() {
   }, [file]);
 
   useEffect(() => {
-    if (phase !== "processing") return;
-    const started = Date.now();
+    if (phase !== "queued" && phase !== "processing") return;
+    const started = analysisStartedAtRef.current ?? Date.now();
+    analysisStartedAtRef.current = started;
     setElapsed(0);
     const timer = setInterval(
       () => setElapsed(Math.round((Date.now() - started) / 1000)),
@@ -121,7 +133,13 @@ export default function AnalyzeForm() {
     return () => clearInterval(timer);
   }, [phase]);
 
-  useEffect(() => () => xhrRef.current?.abort(), []);
+  useEffect(
+    () => () => {
+      xhrRef.current?.abort();
+      pollAbortRef.current?.abort();
+    },
+    [],
+  );
 
   const orderedZone = useMemo<Zone>(
     () => ({
@@ -153,7 +171,72 @@ export default function AnalyzeForm() {
     setError(null);
     setResult(null);
     setPhase("idle");
+    setAnalysisProgress(0);
+    setAnalysisStage("");
     setFile(candidate);
+  }
+
+  async function pollAnalysisJob(jobId: string) {
+    const controller = new AbortController();
+    pollAbortRef.current?.abort();
+    pollAbortRef.current = controller;
+    let transientFailures = 0;
+
+    while (!controller.signal.aborted) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (controller.signal.aborted) return;
+
+      try {
+        const response = await fetch(`/api/analyze/${jobId}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as AnalysisJob;
+
+        // A sleeping/restarting free service can miss a few polls. Keep trying
+        // for roughly two minutes, but make the degraded state visible.
+        if (!response.ok && (response.status === 502 || response.status === 504)) {
+          transientFailures += 1;
+          if (transientFailures <= 12) {
+            setAnalysisStage(payload.detail ?? "Waiting for the backend to respond...");
+            continue;
+          }
+        } else {
+          transientFailures = 0;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            payload.detail ?? payload.error ?? `Progress check failed (HTTP ${response.status}).`,
+          );
+        }
+
+        setAnalysisProgress(Math.max(0, Math.min(payload.progress ?? 0, 100)));
+        setAnalysisStage(payload.stage ?? "Analyzing video");
+        setPhase(payload.status === "queued" ? "queued" : "processing");
+
+        if (payload.status === "failed") {
+          throw new Error(payload.error ?? "Video analysis failed.");
+        }
+        if (payload.status === "succeeded") {
+          if (!payload.result?.success) {
+            throw new Error(payload.result?.detail ?? "Analysis returned no result.");
+          }
+          setResult(payload.result);
+          setAnalysisProgress(100);
+          setPhase("done");
+          pollAbortRef.current = null;
+          router.refresh();
+          return;
+        }
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        pollAbortRef.current = null;
+        setError(err instanceof Error ? err.message : "Could not check analysis progress.");
+        setPhase("error");
+        return;
+      }
+    }
   }
 
   async function loadDemoVideo() {
@@ -201,12 +284,15 @@ export default function AnalyzeForm() {
     setError(null);
     setResult(null);
     setProgress(0);
+    setAnalysisProgress(0);
+    setAnalysisStage("");
+    analysisStartedAtRef.current = Date.now();
     setPhase("uploading");
 
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
     xhr.open("POST", "/api/analyze");
-    xhr.timeout = 0;
+    xhr.timeout = 130_000;
 
     xhr.upload.onprogress = (progressEvent) => {
       if (progressEvent.lengthComputable) {
@@ -217,25 +303,39 @@ export default function AnalyzeForm() {
     };
     xhr.upload.onload = () => {
       setProgress(100);
-      setPhase("processing");
+      setAnalysisStage("Submitting the analysis job...");
     };
 
     xhr.onload = () => {
       xhrRef.current = null;
-      let payload: AnalyzeResult | null = null;
+      let payload: AnalysisJob | AnalyzeResult | null = null;
       try {
-        payload = JSON.parse(xhr.responseText) as AnalyzeResult;
+        payload = JSON.parse(xhr.responseText) as AnalysisJob | AnalyzeResult;
       } catch {
         payload = null;
       }
-      if (xhr.status >= 200 && xhr.status < 300 && payload?.success) {
+      if (xhr.status >= 200 && xhr.status < 300 && payload && "job_id" in payload) {
+        setAnalysisStage(payload.stage ?? "Queued for the video processor");
+        setPhase("queued");
+        void pollAnalysisJob(payload.job_id);
+      } else if (
+        xhr.status >= 200 &&
+        xhr.status < 300 &&
+        payload &&
+        "success" in payload &&
+        payload.success
+      ) {
         setResult(payload);
         setPhase("done");
         router.refresh();
       } else {
+        const errorPayload = payload as
+          | (AnalysisJob & AnalyzeResult)
+          | null;
         setError(
-          payload?.detail ??
-            payload?.message ??
+          errorPayload?.detail ??
+            errorPayload?.error ??
+            errorPayload?.message ??
             `Analysis failed (HTTP ${xhr.status}).`,
         );
         setPhase("error");
@@ -244,6 +344,11 @@ export default function AnalyzeForm() {
     xhr.onerror = () => {
       xhrRef.current = null;
       setError("Network error while communicating with backend.");
+      setPhase("error");
+    };
+    xhr.ontimeout = () => {
+      xhrRef.current = null;
+      setError("The upload could not start analysis within two minutes. Try a smaller clip.");
       setPhase("error");
     };
     xhr.onabort = () => {
@@ -520,8 +625,10 @@ export default function AnalyzeForm() {
                   <span>
                     {phase === "uploading"
                       ? `Uploading... (${progress}%)`
+                      : phase === "queued"
+                      ? `Queued for analysis... (${elapsed}s elapsed)`
                       : phase === "processing"
-                      ? `Analyzing video... (${elapsed}s elapsed)`
+                      ? `Analyzing video... (${analysisProgress}%)`
                       : "Start Video Analysis"}
                   </span>
                 </button>
@@ -529,15 +636,34 @@ export default function AnalyzeForm() {
 
               {/* Honest processing status */}
               {busy && (
-                <div className="rounded-lg bg-canvas border border-line p-3 text-xs text-muted space-y-1 text-center">
+                <div className="rounded-lg bg-canvas border border-line p-3 text-xs text-muted space-y-2 text-center">
                   <p className="text-slate-200 font-medium">
-                    {phase === "uploading" ? "Uploading video to server..." : "Running YOLO detection & ByteTrack tracking..."}
+                    {phase === "uploading"
+                      ? "Uploading video to server..."
+                      : phase === "queued"
+                      ? "Waiting for the video processor..."
+                      : "Running YOLO detection & ByteTrack tracking..."}
                   </p>
                   <p className="text-[0.7rem]">
-                    {phase === "processing"
-                      ? `Processing frames and evaluating ${enabledCount} detector${enabledCount === 1 ? "" : "s"} on CPU. This typically takes 15–30 seconds.`
-                      : "Transferring file..."}
+                    {phase === "uploading"
+                      ? analysisStage || "Transferring file..."
+                      : `${analysisStage || `Evaluating ${enabledCount} detector${enabledCount === 1 ? "" : "s"}`} · ${elapsed}s elapsed`}
                   </p>
+                  {phase !== "uploading" && (
+                    <div
+                      className="h-1.5 overflow-hidden rounded-full bg-raised"
+                      role="progressbar"
+                      aria-label="Video analysis progress"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={analysisProgress}
+                    >
+                      <div
+                        className="h-full rounded-full bg-blue-500 transition-[width] duration-300"
+                        style={{ width: `${analysisProgress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

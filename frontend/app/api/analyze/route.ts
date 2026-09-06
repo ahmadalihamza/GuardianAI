@@ -4,15 +4,17 @@ import { BACKEND_URL } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-/** Video analysis is CPU-bound and can run for minutes (ignored by `next start`). */
-export const maxDuration = 900;
+/** Only the upload/job-creation request remains open; processing is polled. */
+export const maxDuration = 120;
 
-const ANALYZE_TIMEOUT_MS = Number(
-  process.env.ANALYZE_TIMEOUT_MS ?? 15 * 60 * 1000,
+const ANALYZE_SUBMIT_TIMEOUT_MS = Number(
+  process.env.ANALYZE_SUBMIT_TIMEOUT_MS ?? 2 * 60 * 1000,
 );
+const MAX_UPLOAD_BYTES =
+  Number(process.env.MAX_UPLOAD_MB ?? 50) * 1024 * 1024;
 
 /**
- * Forwards the operator's upload to `POST /api/analyze` on the FastAPI backend.
+ * Forwards the upload to the backend's asynchronous analysis-job endpoint.
  *
  * The multipart body is re-materialised via `formData()` rather than streamed
  * through: the request is buffered by the Next.js server for the duration of
@@ -37,12 +39,21 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  if (video.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json(
+      {
+        success: false,
+        detail: `Video is too large. Maximum upload size is ${Math.floor(MAX_UPLOAD_BYTES / 1024 / 1024)} MB.`,
+      },
+      { status: 413 },
+    );
+  }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), ANALYZE_SUBMIT_TIMEOUT_MS);
 
   try {
-    const upstream = await fetch(`${BACKEND_URL}/api/analyze`, {
+    const upstream = await fetch(`${BACKEND_URL}/api/analyze/jobs`, {
       method: "POST",
       body: form,
       signal: controller.signal,
@@ -76,6 +87,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(payload, {
+      status: upstream.status,
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
@@ -84,7 +96,7 @@ export async function POST(request: Request) {
       {
         success: false,
         detail: aborted
-          ? "Analysis timed out. Try a shorter clip or raise ANALYZE_TIMEOUT_MS."
+          ? "The upload timed out before analysis could start. Try a smaller clip."
           : "Could not reach the GuardianAI backend. Is it running on port 8000?",
       },
       { status: aborted ? 504 : 502 },

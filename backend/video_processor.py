@@ -284,11 +284,14 @@ def process_video(
     enable_fire: bool = False,
     enable_weapon: bool = False,
     enable_accident: bool = False,
+    progress_callback=None,
 ) -> dict:
     """Process a video file and return results dict.
 
     on_event_callback(event_dict, annotated_frame) is called for each detected
-    event; a single-argument callback is also accepted.
+    event; a single-argument callback is also accepted. progress_callback gets
+    (processed_frames, total_frames) after each output frame so an asynchronous
+    API client can show real progress without keeping the upload request open.
     """
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -352,6 +355,9 @@ def process_video(
         #: to be seen at playback speed.
         active_alerts: List[Tuple[int, dict]] = []
         alert_hold_frames = max(int(fps * ALERT_OVERLAY_SECONDS), 1)
+
+        if progress_callback:
+            progress_callback(0, total_frames)
 
         try:
             while True:
@@ -458,6 +464,8 @@ def process_video(
 
                 writer.write(frame)
                 frame_idx += 1
+                if progress_callback:
+                    progress_callback(frame_idx, total_frames)
         finally:
             writer.release()
 
@@ -499,7 +507,6 @@ def save_evidence_frame(frame: np.ndarray, incident_code: str) -> str:
     path = str(EVIDENCE_DIR / filename)
     cv2.imwrite(path, frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
     return path
-
 
 
 

@@ -22,7 +22,10 @@ for d in [UPLOAD_DIR, PROCESSED_DIR, EVIDENCE_DIR, MODELS_DIR, ULTRALYTICS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Safe resolution of model and database paths
-_model_env = os.getenv("YOLO_MODEL_PATH", "models/yolo11n.pt").strip()
+# The repository ships yolo11n.pt at its root. Pointing the default at
+# models/yolo11n.pt ignored that file and downloaded another copy on every
+# fresh ephemeral deploy.
+_model_env = os.getenv("YOLO_MODEL_PATH", "yolo11n.pt").strip()
 if not Path(_model_env).is_absolute():
     if (BASE_DIR / _model_env).exists():
         YOLO_MODEL_PATH = str(BASE_DIR / _model_env)
@@ -60,8 +63,14 @@ WEAPON_MODEL_PATH = _optional_model_path("WEAPON_MODEL_PATH")
 
 _db_env = os.getenv("DATABASE_PATH", "data/guardianai.db").strip()
 DATABASE_PATH = str(Path(_db_env) if Path(_db_env).is_absolute() else (BASE_DIR / _db_env))
-PROCESS_EVERY_N_FRAMES = int(os.getenv("PROCESS_EVERY_N_FRAMES", "2"))
-MAX_FRAME_WIDTH = int(os.getenv("MAX_FRAME_WIDTH", "960"))
+# Render advertises this variable to every hosted service. Its free instance is
+# deliberately tiny, so use a lighter inference cadence there unless the owner
+# explicitly overrides the settings.
+IS_RENDER = os.getenv("RENDER", "").strip().lower() == "true"
+PROCESS_EVERY_N_FRAMES = int(
+    os.getenv("PROCESS_EVERY_N_FRAMES", "5" if IS_RENDER else "2")
+)
+MAX_FRAME_WIDTH = int(os.getenv("MAX_FRAME_WIDTH", "640" if IS_RENDER else "960"))
 INCIDENT_COOLDOWN_SECONDS = float(os.getenv("INCIDENT_COOLDOWN_SECONDS", "8"))
 ZONE_PERSISTENCE_FRAMES = int(os.getenv("ZONE_PERSISTENCE_FRAMES", "10"))
 FALL_PERSISTENCE_FRAMES = int(os.getenv("FALL_PERSISTENCE_FRAMES", "6"))
@@ -112,3 +121,16 @@ ACCIDENT_OVERTURN_RATIO_DELTA = float(os.getenv("ACCIDENT_OVERTURN_RATIO_DELTA",
 
 BACKEND_HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
 BACKEND_PORT = int(os.getenv("BACKEND_PORT", "8000"))
+
+# Uploads are copied in chunks and rejected once this limit is crossed. This is
+# especially important on 512 MB hosts, where buffering an unbounded video can
+# kill the process before FastAPI can return a useful error.
+MAX_UPLOAD_MB = max(int(os.getenv("MAX_UPLOAD_MB", "50")), 1)
+MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
+
+# Completed/failed in-memory job metadata is retained long enough for a browser
+# to reconnect, then pruned. Media and incident data keep their existing
+# storage behaviour.
+ANALYSIS_JOB_TTL_SECONDS = max(
+    int(os.getenv("ANALYSIS_JOB_TTL_SECONDS", "3600")), 60
+)

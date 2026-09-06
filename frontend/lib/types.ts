@@ -182,6 +182,27 @@ export interface AnalyzeResult {
   custom_models?: Record<string, boolean>;
 }
 
+export type AnalysisJobState =
+  | "queued"
+  | "processing"
+  | "succeeded"
+  | "failed"
+  | "unreachable";
+
+/** Pollable wrapper used so a hosted proxy never holds a CPU-bound request. */
+export interface AnalysisJob {
+  job_id: string;
+  status: AnalysisJobState;
+  progress?: number;
+  processed_frames?: number;
+  total_frames?: number;
+  stage?: string;
+  status_url?: string;
+  result?: AnalyzeResult | null;
+  error?: string | null;
+  detail?: string;
+}
+
 export interface IncidentFilters {
   event_type?: string;
   severity?: string;

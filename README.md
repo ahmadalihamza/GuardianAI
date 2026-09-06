@@ -160,7 +160,8 @@ python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The YOLO11n model will download automatically on first run (~6MB).
+The repository includes the YOLO11n checkpoint at `yolo11n.pt`, so a normal
+deployment does not have to download the model during its first request.
 
 ### Step 4: Install dashboard dependencies
 
@@ -202,6 +203,8 @@ Or manually:
 uvicorn backend.main:app --reload --port 8000
 ```
 
+`python main.py` is also available as a non-reloading convenience entry point.
+
 ### Terminal 2: Start the Dashboard
 
 Windows:
@@ -225,9 +228,43 @@ npm run dev --prefix frontend
 Pass `--prod` to either launcher to run `next build` followed by `next start`.
 
 ### Access
+
 - Dashboard: http://localhost:3000
 - Backend API: http://localhost:8000
 - API docs: http://localhost:8000/docs
+
+## Deploying on Render
+
+Create two Render web services from the same repository.
+
+### Backend service
+
+- Root directory: repository root
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- Health check path: `/health`
+
+When `RENDER=true`, GuardianAI defaults to processing every fifth frame at a
+maximum width of 640 pixels to fit a small CPU instance. Explicit
+`PROCESS_EVERY_N_FRAMES` and `MAX_FRAME_WIDTH` environment variables override
+those defaults. `MAX_UPLOAD_MB` defaults to 50.
+
+### Frontend service
+
+- Root directory: `frontend`
+- Build command: `npm ci && npm run build`
+- Start command: `npx next start -p $PORT`
+- Environment: `BACKEND_URL=https://<your-backend-service>.onrender.com`
+
+The browser uploads once, receives `202 Accepted`, and polls a job endpoint for
+real processing progress. Do not point the frontend at the legacy synchronous
+`POST /api/analyze` endpoint.
+
+The built-in job registry, SQLite database, processed videos, and evidence are
+local to one backend process. That is adequate for a demo, but Render's
+ephemeral filesystem means they are lost when the instance is replaced. For a
+production deployment, use a persistent database plus object storage and move
+analysis to a durable worker queue.
 
 ## 🤖 Configuring Qwen (Optional)
 
@@ -345,7 +382,9 @@ Verification is the point of the system, not a formality.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
-| POST | `/api/analyze` | Upload & analyze video (per-detector toggles in the form body) |
+| POST | `/api/analyze/jobs` | Upload video and create a background analysis job (`202`) |
+| GET | `/api/analyze/jobs/{job_id}` | Poll queue/frame progress and receive the final result |
+| POST | `/api/analyze` | Legacy synchronous analysis endpoint |
 | GET | `/api/incidents` | List incidents (with filters) |
 | GET | `/api/incidents/{id}` | Get single incident, including its review history |
 | PATCH | `/api/incidents/{id}/status` | Update status only, no judgement recorded |
@@ -355,10 +394,11 @@ Verification is the point of the system, not a formality.
 | GET | `/api/statistics` | Dashboard statistics, incl. reviewer analytics |
 | GET | `/api/video/{video_type}/{filename}` | Stream annotated video or evidence frame |
 
-`POST /api/analyze` accepts these detector toggles alongside the video:
-`enable_intrusion_detection`, `enable_fall_detection`,
+`POST /api/analyze/jobs` accepts these detector toggles alongside the video:
+`enable_intrusion`, `enable_fall_detection`,
 `enable_weapon_detection`, `enable_fire_detection`,
-`enable_accident_detection`.
+`enable_accident_detection`. The dashboard uses this asynchronous endpoint so a
+slow CPU host never has to keep one HTTP request open for the entire analysis.
 
 `POST /api/incidents/{id}/review` body:
 
@@ -514,7 +554,7 @@ runs on a bare checkout.
 | `npm` not found | Install Node.js 18.18+ from https://nodejs.org |
 | Dashboard build/start fails | Delete `frontend/node_modules` and `frontend/.next`, then `npm install --prefix frontend` |
 | Backend on a different host/port | Set `BACKEND_URL` in `frontend/.env.local` and restart the dashboard |
-| Analysis times out | Use a shorter clip, or raise `ANALYZE_TIMEOUT_MS` in `frontend/.env.local` |
+| Analysis fails or disappears | Check the backend logs for an out-of-memory restart; use a shorter clip or lower `MAX_FRAME_WIDTH`, then retry the job |
 | Port 3000 already in use | `npm run dev --prefix frontend -- -p 3001` |
 | No detections | Ensure the subject is clearly visible, and that the matching detector is enabled |
 | Too many fire alerts | Raise `FIRE_MIN_FLICKER_SCORE` and `FIRE_MIN_AREA_RATIO` |

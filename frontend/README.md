@@ -33,7 +33,8 @@ cp .env.local.example .env.local
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `BACKEND_URL` | `http://localhost:8000` | FastAPI base URL, read **only** on the server |
-| `ANALYZE_TIMEOUT_MS` | `900000` (15 min) | Upload/analysis budget for `/api/analyze` |
+| `ANALYZE_SUBMIT_TIMEOUT_MS` | `120000` (2 min) | Upload + background-job creation budget |
+| `MAX_UPLOAD_MB` | `50` | Frontend upload rejection limit; match the backend |
 
 `BACKEND_URL` is deliberately *not* a `NEXT_PUBLIC_*` variable: the browser
 never talks to port 8000. Every backend call goes through this app, so a single
@@ -63,7 +64,8 @@ frontend/
 │   ├── globals.css                    # Tailwind v4 theme + gradients
 │   └── api/
 │       ├── health/route.ts            # GET  → backend /health
-│       ├── analyze/route.ts           # POST → backend /api/analyze
+│       ├── analyze/route.ts           # POST → create backend analysis job
+│       ├── analyze/[jobId]/route.ts   # GET  → poll job progress/result
 │       └── media/[kind]/[filename]/route.ts   # evidence & processed video
 ├── components/                        # Presentational + client components
 └── lib/
@@ -80,10 +82,10 @@ frontend/
   reduces a path to its basename and routes it through
   `/api/media/{evidence|processed}/{filename}`, which forwards the `Range`
   header so `<video>` seeking works.
-- **Upload progress.** `AnalyzeForm` uses `XMLHttpRequest` rather than `fetch`
-  because it is the only way to observe real upload progress. Once the upload
-  completes the UI switches to an elapsed-time counter — CPU-bound analysis
-  exposes no progress signal.
+- **Upload and processing progress.** `AnalyzeForm` uses `XMLHttpRequest` for
+  real upload progress. The backend then returns `202 Accepted`, processes one
+  video at a time, and exposes processed-frame progress through a polled job
+  resource. No proxy request stays open for the multi-minute CPU task.
 - **Filters in the URL.** `/incidents` reads its filters from `searchParams` on
   the server, so a filtered view is shareable and survives a reload.
 - **No charting dependency.** The donut and bar charts are hand-drawn SVG and
@@ -115,4 +117,3 @@ incident with its evidence frames, and change incident status.
 Reviewer names are typed by the operator and cached in `localStorage`. They are
 an accountability label, not an identity check — anyone with access can enter any
 name, so the audit trail is only as trustworthy as the network you run it on.
-

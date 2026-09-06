@@ -161,21 +161,23 @@ class FireSmokeDetector:
         return bool(self.model_path) and not self._model_failed
 
     def _flicker_score(self, mask: np.ndarray) -> float:
-        """Mean per-pixel change across the recent mask history, 0..1.
+        """Per-pixel change from the immediately previous mask, 0..1.
 
         A steady orange object produces an identical mask every frame and scores
-        0. Flame edges move constantly and score well above the threshold.
+        0. Flame edges move constantly and score well above the threshold. The
+        immediately previous mask is the meaningful temporal comparison: an
+        alternating flame boundary can match the mask from two frames ago, and
+        averaging that zero-difference frame into the score incorrectly hides
+        genuine flicker.
         """
-        if len(self._mask_history) < 2:
+        if not self._mask_history:
             return 0.0
-        active = float(np.count_nonzero(mask))
+        previous = self._mask_history[-1]
+        active = float(max(np.count_nonzero(mask), np.count_nonzero(previous)))
         if active < 1.0:
             return 0.0
-        diffs = [
-            float(np.count_nonzero(cv2.absdiff(mask, previous)))
-            for previous in self._mask_history
-        ]
-        return min(sum(diffs) / (len(diffs) * active), 1.0)
+        changed = float(np.count_nonzero(cv2.absdiff(mask, previous)))
+        return min(changed / active, 1.0)
 
     def _load_model(self):
         """Lazily load the optional fine-tuned checkpoint."""
@@ -448,5 +450,4 @@ class FireSmokeDetector:
             bbox=bbox,
             method=method,
         )]
-
 

@@ -1,10 +1,12 @@
 import asyncio
 from contextlib import asynccontextmanager
-import shutil
+from datetime import datetime, timezone
+import logging
+import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +15,10 @@ from fastapi.staticfiles import StaticFiles
 
 from backend import database
 from backend.config import (
+    ANALYSIS_JOB_TTL_SECONDS,
     EVIDENCE_DIR,
+    MAX_UPLOAD_BYTES,
+    MAX_UPLOAD_MB,
     PROCESSED_DIR,
     UPLOAD_DIR,
 )
@@ -36,6 +41,69 @@ from backend.video_processor import (
 from backend import utils
 
 
+logger = logging.getLogger(__name__)
+
+ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
+MAX_PENDING_ANALYSIS_JOBS = 3
+UPLOAD_CHUNK_BYTES = 1024 * 1024
+
+# Ultralytics keeps ByteTrack state on the singleton model. Calling
+# reset_tracker()/model.track() concurrently corrupts that shared state and can
+# exhaust a small hosted instance. Every entry point therefore uses one lock.
+_analysis_lock = threading.Lock()
+
+# Job results only need to live for the browser that submitted them. Keeping
+# them in memory makes this deployable without Redis while still breaking the
+# fragile multi-minute HTTP request into a quick submission plus polling.
+_jobs_lock = threading.Lock()
+_analysis_jobs: dict[str, dict] = {}
+_job_tasks: set[asyncio.Task] = set()
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _prune_jobs() -> None:
+    """Remove old terminal jobs so a long-lived process cannot grow forever."""
+    cutoff = time.time() - ANALYSIS_JOB_TTL_SECONDS
+    with _jobs_lock:
+        expired = [
+            job_id
+            for job_id, job in _analysis_jobs.items()
+            if job["status"] in {"succeeded", "failed"}
+            and job.get("updated_at_epoch", 0) < cutoff
+        ]
+        for job_id in expired:
+            del _analysis_jobs[job_id]
+
+
+def _update_job(job_id: str, **changes) -> None:
+    with _jobs_lock:
+        job = _analysis_jobs.get(job_id)
+        if job is None:
+            return
+        job.update(changes)
+        job["updated_at"] = _utc_now()
+        job["updated_at_epoch"] = time.time()
+
+
+def _job_snapshot(job_id: str) -> Optional[dict]:
+    with _jobs_lock:
+        job = _analysis_jobs.get(job_id)
+        if job is None:
+            return None
+        return {key: value for key, value in job.items() if not key.endswith("_epoch")}
+
+
+def _active_job_count() -> int:
+    with _jobs_lock:
+        return sum(
+            job["status"] in {"queued", "processing"}
+            for job in _analysis_jobs.values()
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize database and load model on startup."""
@@ -53,7 +121,7 @@ app = FastAPI(title="GuardianAI", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -80,51 +148,72 @@ def health_check():
     )
 
 
-@app.post("/api/analyze", response_model=AnalyzeResponse)
-async def analyze_video(
-    video: UploadFile = File(...),
-    camera_name: str = Form("Camera 01"),
-    location: str = Form("Main Entrance"),
-    zone_x1: float = Form(0.6),
-    zone_y1: float = Form(0.3),
-    zone_x2: float = Form(0.9),
-    zone_y2: float = Form(0.8),
-    zone_sensitivity: float = Form(0.5),
-    enable_intrusion: bool = Form(True),
-    enable_fall_detection: bool = Form(True),
-    enable_fire_detection: bool = Form(False),
-    enable_weapon_detection: bool = Form(False),
-    enable_accident_detection: bool = Form(False),
-):
-    """Analyze a video for dangerous events."""
-    start_time = time.time()
-
+async def _save_upload(video: UploadFile) -> tuple[str, str]:
+    """Validate and copy an upload without allowing unbounded disk/memory use."""
     if not video.filename:
         raise HTTPException(status_code=400, detail="No video file provided")
 
-    allowed_extensions = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
     raw_name = Path(video.filename).name
     ext = Path(raw_name).suffix.lower()
-    if ext not in allowed_extensions:
+    if ext not in ALLOWED_VIDEO_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type: {ext}. Allowed: {', '.join(allowed_extensions)}",
+            detail=(
+                f"Unsupported file type: {ext}. Allowed: "
+                f"{', '.join(sorted(ALLOWED_VIDEO_EXTENSIONS))}"
+            ),
         )
 
-    safe_stem = "".join(c for c in Path(raw_name).stem if c.isalnum() or c in "._- ") or "video"
-    unique_name = f"{uuid.uuid4().hex}_{safe_stem}{ext}"
-    upload_path = str(UPLOAD_DIR / unique_name)
+    safe_stem = (
+        "".join(c for c in Path(raw_name).stem if c.isalnum() or c in "._- ")[:120]
+        or "video"
+    )
+    upload_path = UPLOAD_DIR / f"{uuid.uuid4().hex}_{safe_stem}{ext}"
+    written = 0
 
     try:
-        with open(upload_path, "wb") as f:
-            shutil.copyfileobj(video.file, f)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save upload: {e}")
+        with upload_path.open("wb") as target:
+            while chunk := await video.read(UPLOAD_CHUNK_BYTES):
+                written += len(chunk)
+                if written > MAX_UPLOAD_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Video is too large. Maximum upload size is {MAX_UPLOAD_MB} MB.",
+                    )
+                target.write(chunk)
+    except HTTPException:
+        upload_path.unlink(missing_ok=True)
+        raise
+    except Exception as exc:
+        upload_path.unlink(missing_ok=True)
+        logger.exception("Failed to save video upload")
+        raise HTTPException(status_code=500, detail="Failed to save video upload") from exc
     finally:
         await video.close()
 
-    zone_norm = (zone_x1, zone_y1, zone_x2, zone_y2)
+    if written == 0:
+        upload_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="The uploaded video is empty")
+    return raw_name, str(upload_path)
 
+
+def _perform_analysis(
+    *,
+    raw_name: str,
+    upload_path: str,
+    camera_name: str,
+    location: str,
+    zone_norm: tuple[float, float, float, float],
+    zone_sensitivity: float,
+    enable_intrusion: bool,
+    enable_fall_detection: bool,
+    enable_fire_detection: bool,
+    enable_weapon_detection: bool,
+    enable_accident_detection: bool,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+) -> AnalyzeResponse:
+    """Run the shared-model pipeline and persist its incident records."""
+    start_time = time.time()
     created_incidents = []
     evidence_frames = {}
 
@@ -138,18 +227,23 @@ async def analyze_video(
         elif incident_code not in evidence_frames:
             evidence_frames[incident_code] = event.get("evidence_path", "")
 
-    result = await asyncio.to_thread(
-        process_video,
-        video_path=upload_path,
-        zone_norm=zone_norm,
-        enable_intrusion=enable_intrusion,
-        enable_fall=enable_fall_detection,
-        zone_sensitivity=zone_sensitivity,
-        on_event_callback=on_event,
-        enable_fire=enable_fire_detection,
-        enable_weapon=enable_weapon_detection,
-        enable_accident=enable_accident_detection,
-    )
+    # The singleton YOLO model and its ByteTrack predictor are intentionally
+    # serialized. This also bounds peak RAM on small hosted instances.
+    with _analysis_lock:
+        if progress_callback:
+            progress_callback(0, 0)
+        result = process_video(
+            video_path=upload_path,
+            zone_norm=zone_norm,
+            enable_intrusion=enable_intrusion,
+            enable_fall=enable_fall_detection,
+            zone_sensitivity=zone_sensitivity,
+            on_event_callback=on_event,
+            enable_fire=enable_fire_detection,
+            enable_weapon=enable_weapon_detection,
+            enable_accident=enable_accident_detection,
+            progress_callback=progress_callback,
+        )
 
     if not result.get("success"):
         raise HTTPException(
@@ -169,14 +263,12 @@ async def analyze_video(
             severity=event["severity"],
             explanation=event["explanation"],
         )
-        evidence_path = event.get("evidence_path") or evidence_frames.get(incident_code, "")
-
-        # Stored as a plain "x1,y1,x2,y2" string: SQLite has no array type and
-        # the UI only ever needs to draw it back onto the evidence still.
+        evidence_path = event.get("evidence_path") or evidence_frames.get(
+            incident_code, ""
+        )
         raw_bbox = event.get("bbox")
         bbox_text = (
-            ",".join(f"{float(v):.1f}" for v in raw_bbox)
-            if raw_bbox else None
+            ",".join(f"{float(v):.1f}" for v in raw_bbox) if raw_bbox else None
         )
 
         incident_record = {
@@ -205,16 +297,12 @@ async def analyze_video(
         incident_record["id"] = incident_id
         created_incidents.append(incident_record)
 
-    duration = time.time() - start_time
-
-    processed_filename = Path(result["output_path"]).name
-    processed_url = f"/processed/{processed_filename}"
-
+    output_path = result["output_path"]
     return AnalyzeResponse(
         success=True,
         message=f"Analysis complete. {len(created_incidents)} incident(s) detected.",
-        processed_video_path=result["output_path"],
-        processed_video_url=processed_url,
+        processed_video_path=output_path,
+        processed_video_url=f"/processed/{Path(output_path).name}",
         people_tracked=result["people_tracked"],
         vehicles_tracked=result.get("vehicles_tracked", 0),
         incidents_created=len(created_incidents),
@@ -242,8 +330,238 @@ async def analyze_video(
             )
             for inc in created_incidents
         ],
-        processing_duration_seconds=round(duration, 2),
+        processing_duration_seconds=round(time.time() - start_time, 2),
     )
+
+
+def _analysis_kwargs(
+    *,
+    raw_name: str,
+    upload_path: str,
+    camera_name: str,
+    location: str,
+    zone_x1: float,
+    zone_y1: float,
+    zone_x2: float,
+    zone_y2: float,
+    zone_sensitivity: float,
+    enable_intrusion: bool,
+    enable_fall_detection: bool,
+    enable_fire_detection: bool,
+    enable_weapon_detection: bool,
+    enable_accident_detection: bool,
+) -> dict:
+    return {
+        "raw_name": raw_name,
+        "upload_path": upload_path,
+        "camera_name": camera_name.strip() or "Camera 01",
+        "location": location.strip() or "Main Entrance",
+        "zone_norm": (zone_x1, zone_y1, zone_x2, zone_y2),
+        "zone_sensitivity": min(max(zone_sensitivity, 0.0), 1.0),
+        "enable_intrusion": enable_intrusion,
+        "enable_fall_detection": enable_fall_detection,
+        "enable_fire_detection": enable_fire_detection,
+        "enable_weapon_detection": enable_weapon_detection,
+        "enable_accident_detection": enable_accident_detection,
+    }
+
+
+async def _run_analysis_job(job_id: str, kwargs: dict) -> None:
+    def progress(processed_frames: int, total_frames: int) -> None:
+        percent = (
+            min(int(processed_frames * 100 / total_frames), 99)
+            if total_frames > 0
+            else 1
+        )
+        _update_job(
+            job_id,
+            status="processing",
+            progress=percent,
+            processed_frames=processed_frames,
+            total_frames=max(total_frames, 0),
+            stage=(
+                f"Processing frame {processed_frames} of {total_frames}"
+                if total_frames > 0
+                else "Starting video processor"
+            ),
+        )
+
+    try:
+        response = await asyncio.to_thread(
+            _perform_analysis,
+            **kwargs,
+            progress_callback=progress,
+        )
+        _update_job(
+            job_id,
+            status="succeeded",
+            progress=100,
+            stage="Analysis complete",
+            result=response.model_dump(mode="json"),
+            error=None,
+        )
+    except HTTPException as exc:
+        _update_job(
+            job_id,
+            status="failed",
+            stage="Analysis failed",
+            error=str(exc.detail),
+        )
+    except Exception:
+        logger.exception("Video analysis job %s failed", job_id)
+        _update_job(
+            job_id,
+            status="failed",
+            stage="Analysis failed",
+            error="The video processor failed unexpectedly. Check the backend logs.",
+        )
+    finally:
+        Path(kwargs["upload_path"]).unlink(missing_ok=True)
+
+
+@app.post("/api/analyze/jobs", status_code=202)
+async def create_analysis_job(
+    video: UploadFile = File(...),
+    camera_name: str = Form("Camera 01"),
+    location: str = Form("Main Entrance"),
+    zone_x1: float = Form(0.6),
+    zone_y1: float = Form(0.3),
+    zone_x2: float = Form(0.9),
+    zone_y2: float = Form(0.8),
+    zone_sensitivity: float = Form(0.5),
+    enable_intrusion: bool = Form(True),
+    enable_fall_detection: bool = Form(True),
+    enable_fire_detection: bool = Form(False),
+    enable_weapon_detection: bool = Form(False),
+    enable_accident_detection: bool = Form(False),
+):
+    """Accept a video quickly and process it behind a pollable job resource."""
+    _prune_jobs()
+    # This early check avoids receiving a whole upload when the queue is
+    # already full. Capacity is checked again atomically after the awaited
+    # upload because several clients can pass this point at the same time.
+    if _active_job_count() >= MAX_PENDING_ANALYSIS_JOBS:
+        raise HTTPException(
+            status_code=429,
+            detail="The analyzer queue is full. Wait for a running job and try again.",
+        )
+
+    raw_name, upload_path = await _save_upload(video)
+    kwargs = _analysis_kwargs(
+        raw_name=raw_name,
+        upload_path=upload_path,
+        camera_name=camera_name,
+        location=location,
+        zone_x1=zone_x1,
+        zone_y1=zone_y1,
+        zone_x2=zone_x2,
+        zone_y2=zone_y2,
+        zone_sensitivity=zone_sensitivity,
+        enable_intrusion=enable_intrusion,
+        enable_fall_detection=enable_fall_detection,
+        enable_fire_detection=enable_fire_detection,
+        enable_weapon_detection=enable_weapon_detection,
+        enable_accident_detection=enable_accident_detection,
+    )
+    job_id = uuid.uuid4().hex
+    now = _utc_now()
+    queue_full = False
+    with _jobs_lock:
+        active_jobs = sum(
+            job["status"] in {"queued", "processing"}
+            for job in _analysis_jobs.values()
+        )
+        if active_jobs >= MAX_PENDING_ANALYSIS_JOBS:
+            queue_full = True
+        else:
+            _analysis_jobs[job_id] = {
+                "job_id": job_id,
+                "status": "queued",
+                "progress": 0,
+                "processed_frames": 0,
+                "total_frames": 0,
+                "stage": "Queued for the video processor",
+                "result": None,
+                "error": None,
+                "created_at": now,
+                "updated_at": now,
+                "updated_at_epoch": time.time(),
+            }
+
+    if queue_full:
+        Path(upload_path).unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=429,
+            detail="The analyzer queue is full. Wait for a running job and try again.",
+        )
+
+    task = asyncio.create_task(_run_analysis_job(job_id, kwargs))
+    _job_tasks.add(task)
+    task.add_done_callback(_job_tasks.discard)
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "progress": 0,
+        "status_url": f"/api/analyze/jobs/{job_id}",
+    }
+
+
+@app.get("/api/analyze/jobs/{job_id}")
+def get_analysis_job(job_id: str):
+    """Return progress, a terminal error, or the completed analyze response."""
+    _prune_jobs()
+    if len(job_id) != 32 or any(c not in "0123456789abcdef" for c in job_id.lower()):
+        raise HTTPException(status_code=404, detail="Analysis job not found")
+    job = _job_snapshot(job_id)
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Analysis job not found. The backend may have restarted; "
+                "please upload the video again."
+            ),
+        )
+    return job
+
+
+@app.post("/api/analyze", response_model=AnalyzeResponse)
+async def analyze_video(
+    video: UploadFile = File(...),
+    camera_name: str = Form("Camera 01"),
+    location: str = Form("Main Entrance"),
+    zone_x1: float = Form(0.6),
+    zone_y1: float = Form(0.3),
+    zone_x2: float = Form(0.9),
+    zone_y2: float = Form(0.8),
+    zone_sensitivity: float = Form(0.5),
+    enable_intrusion: bool = Form(True),
+    enable_fall_detection: bool = Form(True),
+    enable_fire_detection: bool = Form(False),
+    enable_weapon_detection: bool = Form(False),
+    enable_accident_detection: bool = Form(False),
+):
+    """Compatibility endpoint; new clients should use the job API above."""
+    raw_name, upload_path = await _save_upload(video)
+    kwargs = _analysis_kwargs(
+        raw_name=raw_name,
+        upload_path=upload_path,
+        camera_name=camera_name,
+        location=location,
+        zone_x1=zone_x1,
+        zone_y1=zone_y1,
+        zone_x2=zone_x2,
+        zone_y2=zone_y2,
+        zone_sensitivity=zone_sensitivity,
+        enable_intrusion=enable_intrusion,
+        enable_fall_detection=enable_fall_detection,
+        enable_fire_detection=enable_fire_detection,
+        enable_weapon_detection=enable_weapon_detection,
+        enable_accident_detection=enable_accident_detection,
+    )
+    try:
+        return await asyncio.to_thread(_perform_analysis, **kwargs)
+    finally:
+        Path(upload_path).unlink(missing_ok=True)
 
 
 @app.get("/api/incidents")
@@ -362,6 +680,8 @@ def serve_video(video_type: str, filename: str):
         directory = EVIDENCE_DIR
     else:
         raise HTTPException(status_code=400, detail="Invalid video type")
+    if not filename or Path(filename).name != filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
     file_path = directory / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")

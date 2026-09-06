@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.so
@@ -44,6 +45,7 @@ data/evidence/*
 !data/uploads/.gitkeep
 !data/processed/.gitkeep
 !data/evidence/.gitkeep
+data/ultralytics/
 data/*.db
 models/*.pt
 models/*.onnx
@@ -56,7 +58,7 @@ Thumbs.db
 *.log
 
 # Demo generated assets
-demo/sample_surveillance.mp4
+# sample_surveillance.mp4 is intentionally committed for the dashboard demo.
 demo/raw_sample.mp4
 demo/bus.jpg
 
