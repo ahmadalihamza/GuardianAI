@@ -240,14 +240,17 @@ Create two Render web services from the same repository.
 ### Backend service
 
 - Root directory: repository root
-- Build command: `pip install -r requirements.txt`
+- Build command: `pip install -r requirements-render.txt`
 - Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 - Health check path: `/health`
 
 When `RENDER=true`, GuardianAI defaults to processing every fifth frame at a
-maximum width of 640 pixels to fit a small CPU instance. Explicit
-`PROCESS_EVERY_N_FRAMES`, `MAX_FRAME_WIDTH`, and `YOLO_IMAGE_SIZE` environment variables override
-those defaults. `MAX_UPLOAD_MB` defaults to 50.
+maximum width of 480 pixels with a 416-pixel YOLO input to fit a small CPU
+instance. Explicit `PROCESS_EVERY_N_FRAMES`, `MAX_FRAME_WIDTH`, and
+`YOLO_IMAGE_SIZE` environment variables override those defaults.
+`MAX_UPLOAD_MB` defaults to 50. The Render requirements file selects PyTorch's
+official CPU-only wheels; the service has no GPU, so the CUDA packages from the
+regular PyPI build only waste build time, disk space, and memory headroom.
 
 ### Frontend service
 

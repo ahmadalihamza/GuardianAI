@@ -1,0 +1,9 @@
+# CPU-only deployment dependencies for Render.
+# The regular PyPI torch wheel pulls several gigabytes of unused CUDA packages
+# into a service with no GPU. Pinning the official +cpu builds reduces both the
+# image and runtime memory footprint while satisfying Ultralytics.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+
+-r requirements.txt
