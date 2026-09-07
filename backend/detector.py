@@ -13,13 +13,20 @@ a *single* `model.track()` call per frame. That matters for two reasons:
 Detections are returned as plain dicts so the event detectors stay free of any
 Ultralytics types, which also keeps them unit-testable without the model.
 """
+import gc
+import sys
 from typing import Iterable, Optional, Sequence
 
 import numpy as np
 from ultralytics import YOLO
 
 from backend import coco_classes
-from backend.config import YOLO_MODEL_PATH
+from backend.config import (
+    TORCH_NUM_THREADS,
+    YOLO_IMAGE_SIZE,
+    YOLO_MAX_DETECTIONS,
+    YOLO_MODEL_PATH,
+)
 
 _model: Optional[YOLO] = None
 
@@ -38,8 +45,43 @@ def load_model() -> YOLO:
     """Load the YOLO11n model (singleton)."""
     global _model
     if _model is None:
+        if TORCH_NUM_THREADS:
+            # Render Free provides only a fraction of one CPU. Extra PyTorch
+            # worker pools consume memory without adding useful throughput.
+            import torch
+
+            torch.set_num_threads(TORCH_NUM_THREADS)
         _model = YOLO(YOLO_MODEL_PATH)
     return _model
+
+
+def release_inference_buffers() -> None:
+    """Release the predictor's cached tensors while retaining model weights.
+
+    Ultralytics keeps its most recent predictor, input tensor, results and
+    ByteTrack state on the singleton model. Those buffers are useful between
+    adjacent frames, but not while FFmpeg starts a second process to transcode
+    the completed video. Dropping only the predictor gives that encoder ample
+    headroom on a 512 MB host, while the small YOLO weights stay loaded for the
+    next job.
+    """
+    model = _model
+    if model is not None and getattr(model, "predictor", None) is not None:
+        model.predictor = None
+
+    gc.collect()
+
+    # CPython's Linux allocator can keep freed arenas mapped. Ask glibc to
+    # return them to the OS before FFmpeg is spawned. This is deliberately
+    # best-effort so Windows/macOS development remains portable.
+    if sys.platform.startswith("linux"):
+        try:  # pragma: no cover - platform/allocator dependent
+            import ctypes
+
+            libc = ctypes.CDLL("libc.so.6")
+            libc.malloc_trim(0)
+        except (AttributeError, OSError):
+            pass
 
 
 def reset_tracker() -> None:
@@ -92,6 +134,8 @@ def detect_objects(
         persist=True,
         classes=list(requested),
         conf=confidence_threshold,
+        imgsz=YOLO_IMAGE_SIZE,
+        max_det=YOLO_MAX_DETECTIONS,
         verbose=False,
         device="cpu",
     )

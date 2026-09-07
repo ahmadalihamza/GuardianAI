@@ -246,7 +246,7 @@ Create two Render web services from the same repository.
 
 When `RENDER=true`, GuardianAI defaults to processing every fifth frame at a
 maximum width of 640 pixels to fit a small CPU instance. Explicit
-`PROCESS_EVERY_N_FRAMES` and `MAX_FRAME_WIDTH` environment variables override
+`PROCESS_EVERY_N_FRAMES`, `MAX_FRAME_WIDTH`, and `YOLO_IMAGE_SIZE` environment variables override
 those defaults. `MAX_UPLOAD_MB` defaults to 50.
 
 ### Frontend service
@@ -554,7 +554,7 @@ runs on a bare checkout.
 | `npm` not found | Install Node.js 18.18+ from https://nodejs.org |
 | Dashboard build/start fails | Delete `frontend/node_modules` and `frontend/.next`, then `npm install --prefix frontend` |
 | Backend on a different host/port | Set `BACKEND_URL` in `frontend/.env.local` and restart the dashboard |
-| Analysis fails or disappears | Check the backend logs for an out-of-memory restart; use a shorter clip or lower `MAX_FRAME_WIDTH`, then retry the job |
+| Analysis fails or disappears | Check the backend logs for an out-of-memory restart; use a shorter clip or lower `MAX_FRAME_WIDTH` and `YOLO_IMAGE_SIZE`, then retry the job |
 | Port 3000 already in use | `npm run dev --prefix frontend -- -p 3001` |
 | No detections | Ensure the subject is clearly visible, and that the matching detector is enabled |
 | Too many fire alerts | Raise `FIRE_MIN_FLICKER_SCORE` and `FIRE_MIN_AREA_RATIO` |

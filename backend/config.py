@@ -70,7 +70,15 @@ IS_RENDER = os.getenv("RENDER", "").strip().lower() == "true"
 PROCESS_EVERY_N_FRAMES = int(
     os.getenv("PROCESS_EVERY_N_FRAMES", "5" if IS_RENDER else "2")
 )
-MAX_FRAME_WIDTH = int(os.getenv("MAX_FRAME_WIDTH", "640" if IS_RENDER else "960"))
+# A 640px YOLO tensor pushed the complete FastAPI + PyTorch + OpenCV process
+# beyond Render Free's 512 MB ceiling near the end of a job. 416 is still a
+# multiple of YOLO's 32px stride and leaves enough headroom for video encoding.
+MAX_FRAME_WIDTH = int(os.getenv("MAX_FRAME_WIDTH", "480" if IS_RENDER else "960"))
+YOLO_IMAGE_SIZE = int(os.getenv("YOLO_IMAGE_SIZE", "416" if IS_RENDER else "640"))
+YOLO_MAX_DETECTIONS = max(int(os.getenv("YOLO_MAX_DETECTIONS", "100")), 1)
+TORCH_NUM_THREADS = max(
+    int(os.getenv("TORCH_NUM_THREADS", "1" if IS_RENDER else "0")), 0
+)
 INCIDENT_COOLDOWN_SECONDS = float(os.getenv("INCIDENT_COOLDOWN_SECONDS", "8"))
 ZONE_PERSISTENCE_FRAMES = int(os.getenv("ZONE_PERSISTENCE_FRAMES", "10"))
 FALL_PERSISTENCE_FRAMES = int(os.getenv("FALL_PERSISTENCE_FRAMES", "6"))

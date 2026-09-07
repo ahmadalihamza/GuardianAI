@@ -36,7 +36,7 @@ from backend.event_detector import EventDetector
 from backend.accident_detector import AccidentDetector
 from backend.fire_detector import FireSmokeDetector
 from backend.weapon_detector import WeaponDetector
-from backend.detector import detect_objects, reset_tracker
+from backend.detector import detect_objects, release_inference_buffers, reset_tracker
 
 #: How long an alert stays drawn on the annotated video. A box shown for the
 #: single frame that raised it is invisible at playback speed, and the whole
@@ -307,7 +307,10 @@ def process_video(
         if not ret:
             return {"success": False, "error": "Cannot read first frame from video"}
 
-        _, scale = _resize_frame(first_frame)
+        # Only the dimensions are needed here. Avoid retaining an otherwise
+        # unused resized copy of the first frame for the whole analysis.
+        scale = min(MAX_FRAME_WIDTH / orig_w, 1.0) if orig_w > 0 else 1.0
+        del first_frame
         out_w = int(orig_w * scale) if orig_w > MAX_FRAME_WIDTH else orig_w
         out_h = int(orig_h * scale) if orig_w > MAX_FRAME_WIDTH else orig_h
 
@@ -469,6 +472,16 @@ def process_video(
         finally:
             writer.release()
 
+        # The decoder, last video frame and Ultralytics predictor would
+        # otherwise remain resident while FFmpeg is launched below. Their
+        # combined peak exceeded Render Free's 512 MB limit and killed jobs at
+        # roughly 90-99%, which looked like an endless spinner in the browser.
+        cap.release()
+        detections.clear()
+        active_alerts.clear()
+        frame = None
+        release_inference_buffers()
+
         # Convert to browser-friendly H.264 if ffmpeg is available
         final_output_path = _convert_to_h264(output_path)
 
@@ -507,7 +520,6 @@ def save_evidence_frame(frame: np.ndarray, incident_code: str) -> str:
     path = str(EVIDENCE_DIR / filename)
     cv2.imwrite(path, frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
     return path
-
 
 
 
