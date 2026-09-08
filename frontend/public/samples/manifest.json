@@ -1,0 +1,285 @@
+[
+  {
+    "id": "traffic",
+    "title": "Traffic accident",
+    "filename": "traffic_accident_detection_10s.mp4",
+    "duration_seconds": 10,
+    "source_sha256": "5eaeb841c7b731b48d85472bb509e69c13e3e1cd8cea6468b647cd5378587495",
+    "video_url": "/samples/traffic_accident_detection_10s.mp4",
+    "poster_url": "/samples/traffic_poster.jpg",
+    "result": {
+      "success": true,
+      "message": "Analysis complete. 2 incident(s) detected.",
+      "processed_video_path": "/samples/traffic_processed.mp4",
+      "processed_video_url": "/samples/traffic_processed.mp4",
+      "people_tracked": 0,
+      "vehicles_tracked": 3,
+      "incidents_created": 2,
+      "incidents": [
+        {
+          "id": -1001,
+          "incident_code": "SAMPLE-TRAFFIC-001",
+          "event_type": "Vehicle Collision",
+          "source_video": "traffic_accident_detection_10s.mp4",
+          "camera_name": "Sample Camera 01",
+          "location": "Road junction",
+          "person_track_id": 1,
+          "video_timestamp": 4.24,
+          "confidence": 0.801,
+          "seriousness_score": 0.9,
+          "persistence_score": 0.333,
+          "context_score": 0.8,
+          "risk_score": 73.0,
+          "severity": "High",
+          "explanation": "Car #1 and car #2 overlapped by 20% across 3 processed frames, with a closing speed of 2.17 vehicle-widths/second.",
+          "ai_summary": "At 00:00:04, GuardianAI detected a suspected collision between two vehicles at Sample Camera 01 (Road junction). The vehicles overlapped while at least one of them was moving. The calculated risk score is 73/100, classified as High. Car #1 and car #2 overlapped by 20% across 3 processed frames, with a closing speed of 2.17 vehicle-widths/second. Immediate human verification is recommended.",
+          "evidence_path": "/samples/traffic_evidence_001.jpg",
+          "processed_video_path": "/samples/traffic_processed.mp4",
+          "status": "Pending Verification",
+          "created_at": "2026-09-07T14:38:25.763159+00:00",
+          "updated_at": "2026-09-07T14:38:25.763159+00:00",
+          "reviewed_by": null,
+          "reviewed_at": null,
+          "review_notes": null,
+          "operator_assessment": null,
+          "escalated": 0,
+          "detection_method": "kinematic",
+          "bbox": "112.0,193.0,273.0,238.0"
+        },
+        {
+          "id": -1002,
+          "incident_code": "SAMPLE-TRAFFIC-002",
+          "event_type": "Vehicle Collision",
+          "source_video": "traffic_accident_detection_10s.mp4",
+          "camera_name": "Sample Camera 01",
+          "location": "Road junction",
+          "person_track_id": 2,
+          "video_timestamp": 5.6,
+          "confidence": 0.851,
+          "seriousness_score": 0.9,
+          "persistence_score": 0.333,
+          "context_score": 0.8,
+          "risk_score": 75.0,
+          "severity": "High",
+          "explanation": "Car #2 and car #3 overlapped by 17% across 3 processed frames, with a closing speed of 2.40 vehicle-widths/second.",
+          "ai_summary": "At 00:00:05, GuardianAI detected a suspected collision between two vehicles at Sample Camera 01 (Road junction). The vehicles overlapped while at least one of them was moving. The calculated risk score is 75/100, classified as High. Car #2 and car #3 overlapped by 17% across 3 processed frames, with a closing speed of 2.40 vehicle-widths/second. Immediate human verification is recommended.",
+          "evidence_path": "/samples/traffic_evidence_002.jpg",
+          "processed_video_path": "/samples/traffic_processed.mp4",
+          "status": "Pending Verification",
+          "created_at": "2026-09-07T14:38:25.781152+00:00",
+          "updated_at": "2026-09-07T14:38:25.781152+00:00",
+          "reviewed_by": null,
+          "reviewed_at": null,
+          "review_notes": null,
+          "operator_assessment": null,
+          "escalated": 0,
+          "detection_method": "kinematic",
+          "bbox": "158.0,169.0,438.0,239.0"
+        }
+      ],
+      "processing_duration_seconds": 48.26,
+      "features": {
+        "intrusion": false,
+        "fall": false,
+        "fire": false,
+        "weapon": false,
+        "accident": true
+      },
+      "custom_models": {
+        "fire": false,
+        "weapon": false
+      },
+      "precomputed": true
+    }
+  },
+  {
+    "id": "fire",
+    "title": "Fire & smoke",
+    "filename": "fire_smoke_detection_10s.mp4",
+    "duration_seconds": 10,
+    "source_sha256": "15381d422804935e6cb475812092ad4431af25157fe58f5bb0aed428b6d909ad",
+    "video_url": "/samples/fire_smoke_detection_10s.mp4",
+    "poster_url": "/samples/fire_poster.jpg",
+    "result": {
+      "success": true,
+      "message": "Analysis complete. 1 incident(s) detected.",
+      "processed_video_path": "/samples/fire_processed.mp4",
+      "processed_video_url": "/samples/fire_processed.mp4",
+      "people_tracked": 0,
+      "vehicles_tracked": 0,
+      "incidents_created": 1,
+      "incidents": [
+        {
+          "id": -2001,
+          "incident_code": "SAMPLE-FIRE-001",
+          "event_type": "Fire Detected",
+          "source_video": "fire_smoke_detection_10s.mp4",
+          "camera_name": "Sample Camera 02",
+          "location": "Fire monitoring",
+          "person_track_id": -1,
+          "video_timestamp": 0.88,
+          "confidence": 0.798,
+          "seriousness_score": 0.95,
+          "persistence_score": 0.5,
+          "context_score": 0.8,
+          "risk_score": 78.0,
+          "severity": "High",
+          "explanation": "Flame-coloured region covering 7.60% of the frame, red-dominant and flickering (score 0.21 vs. 0.12 required), sustained across 8 processed frames (~0.3s). Heuristic colour + temporal analysis \u2014 verify before dispatch.",
+          "ai_summary": "At 00:00:00, GuardianAI detected a suspected fire at Sample Camera 02 (Fire monitoring). The region matched flame colour and flicker characteristics across consecutive frames. The calculated risk score is 78/100, classified as High. Flame-coloured region covering 7.60% of the frame, red-dominant and flickering (score 0.21 vs. 0.12 required), sustained across 8 processed frames (~0.3s). Heuristic colour + temporal analysis \u2014 verify before dispatch. Immediate human verification is recommended.",
+          "evidence_path": "/samples/fire_evidence_001.jpg",
+          "processed_video_path": "/samples/fire_processed.mp4",
+          "status": "Pending Verification",
+          "created_at": "2026-09-07T14:38:34.366176+00:00",
+          "updated_at": "2026-09-07T14:38:34.366176+00:00",
+          "reviewed_by": null,
+          "reviewed_at": null,
+          "review_notes": null,
+          "operator_assessment": null,
+          "escalated": 0,
+          "detection_method": "heuristic",
+          "bbox": "262.0,59.0,430.0,299.0"
+        }
+      ],
+      "processing_duration_seconds": 2.23,
+      "features": {
+        "intrusion": false,
+        "fall": false,
+        "fire": true,
+        "weapon": false,
+        "accident": false
+      },
+      "custom_models": {
+        "fire": false,
+        "weapon": false
+      },
+      "precomputed": true
+    }
+  },
+  {
+    "id": "weapon",
+    "title": "Knife detection",
+    "filename": "weapon_detection_knife_10s.mp4",
+    "duration_seconds": 10,
+    "source_sha256": "e9cb45df500ddba12b84917ad73b288337806d2ee499daa8f336965b6612f800",
+    "video_url": "/samples/weapon_detection_knife_10s.mp4",
+    "poster_url": "/samples/weapon_poster.jpg",
+    "result": {
+      "success": true,
+      "message": "Analysis complete. 0 incident(s) detected.",
+      "processed_video_path": "/samples/weapon_processed.mp4",
+      "processed_video_url": "/samples/weapon_processed.mp4",
+      "people_tracked": 3,
+      "vehicles_tracked": 0,
+      "incidents_created": 0,
+      "incidents": [],
+      "processing_duration_seconds": 24.32,
+      "features": {
+        "intrusion": false,
+        "fall": false,
+        "fire": false,
+        "weapon": true,
+        "accident": false
+      },
+      "custom_models": {
+        "fire": false,
+        "weapon": false
+      },
+      "precomputed": true
+    }
+  },
+  {
+    "id": "fall",
+    "title": "Fall detection",
+    "filename": "fall_detection_10s.mp4",
+    "duration_seconds": 10,
+    "source_sha256": "b6c7e7f300d5589361d5e9b1c7878218a51a1151ff5acc31fd090679b2c985c3",
+    "video_url": "/samples/fall_detection_10s.mp4",
+    "poster_url": "/samples/fall_poster.jpg",
+    "result": {
+      "success": true,
+      "message": "Analysis complete. 0 incident(s) detected.",
+      "processed_video_path": "/samples/fall_processed.mp4",
+      "processed_video_url": "/samples/fall_processed.mp4",
+      "people_tracked": 6,
+      "vehicles_tracked": 0,
+      "incidents_created": 0,
+      "incidents": [],
+      "processing_duration_seconds": 52.97,
+      "features": {
+        "intrusion": false,
+        "fall": true,
+        "fire": false,
+        "weapon": false,
+        "accident": false
+      },
+      "custom_models": {
+        "fire": false,
+        "weapon": false
+      },
+      "precomputed": true
+    }
+  },
+  {
+    "id": "intrusion",
+    "title": "Restricted zone",
+    "filename": "restricted_zone_intrusion_10s.mp4",
+    "duration_seconds": 10,
+    "source_sha256": "cf9cd168e25624eb023f53f3d568697d000464b1b5ff56edbe2e2ef49a4fda38",
+    "video_url": "/samples/restricted_zone_intrusion_10s.mp4",
+    "poster_url": "/samples/intrusion_poster.jpg",
+    "result": {
+      "success": true,
+      "message": "Analysis complete. 1 incident(s) detected.",
+      "processed_video_path": "/samples/intrusion_processed.mp4",
+      "processed_video_url": "/samples/intrusion_processed.mp4",
+      "people_tracked": 1,
+      "vehicles_tracked": 0,
+      "incidents_created": 1,
+      "incidents": [
+        {
+          "id": -5001,
+          "incident_code": "SAMPLE-INTRUSION-001",
+          "event_type": "Restricted Zone Intrusion",
+          "source_video": "restricted_zone_intrusion_10s.mp4",
+          "camera_name": "Sample Camera 05",
+          "location": "Warehouse perimeter",
+          "person_track_id": 15,
+          "video_timestamp": 5.68,
+          "confidence": 0.8829113245010376,
+          "seriousness_score": 0.55,
+          "persistence_score": 0.5,
+          "context_score": 0.5,
+          "risk_score": 68.0,
+          "severity": "Medium",
+          "explanation": "Person #15 remained inside the restricted zone for 0.2 seconds with a mean detection confidence of 88% over the last 8 observations.",
+          "ai_summary": "At 00:00:05, GuardianAI detected a restricted-zone intrusion by Person #15 at Sample Camera 05 (Warehouse perimeter). The individual remained in the restricted area beyond the allowed threshold. The calculated risk score is 68/100, classified as Medium. Person #15 remained inside the restricted zone for 0.2 seconds with a mean detection confidence of 88% over the last 8 observations. Human verification is recommended before any action is taken.",
+          "evidence_path": "/samples/intrusion_evidence_001.jpg",
+          "processed_video_path": "/samples/intrusion_processed.mp4",
+          "status": "Pending Verification",
+          "created_at": "2026-09-07T14:40:43.255757+00:00",
+          "updated_at": "2026-09-07T14:40:43.255757+00:00",
+          "reviewed_by": null,
+          "reviewed_at": null,
+          "review_notes": null,
+          "operator_assessment": null,
+          "escalated": 0,
+          "detection_method": "coco",
+          "bbox": "248.9,60.0,323.8,279.8"
+        }
+      ],
+      "processing_duration_seconds": 44.54,
+      "features": {
+        "intrusion": true,
+        "fall": false,
+        "fire": false,
+        "weapon": false,
+        "accident": false
+      },
+      "custom_models": {
+        "fire": false,
+        "weapon": false
+      },
+      "precomputed": true
+    }
+  }
+]

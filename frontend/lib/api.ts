@@ -17,6 +17,7 @@ import type {
   Statistics,
 } from "./types";
 import { EMPTY_STATISTICS, UNREACHABLE_HEALTH } from "./types";
+import { getSampleIncident } from "./samples";
 
 export const BACKEND_URL = (
   process.env.BACKEND_URL ?? "http://127.0.0.1:8000"
@@ -90,12 +91,14 @@ export async function getIncidents(
 }
 
 export async function getIncident(id: number): Promise<Incident | null> {
+  const saved = getSampleIncident(id);
+  const fallback = saved ? { ...saved, review_state_unavailable: true } : null;
   try {
-    const res = await backendFetch(`/api/incidents/${id}`);
-    if (!res.ok) return null;
+    const res = await backendFetch(`/api/incidents/${id}`, {}, saved ? 2_000 : READ_TIMEOUT_MS);
+    if (!res.ok) return fallback;
     return (await res.json()) as Incident;
   } catch {
-    return null;
+    return fallback;
   }
 }
 

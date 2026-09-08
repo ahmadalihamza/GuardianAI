@@ -11,6 +11,7 @@ import ReviewPanel from "@/components/ReviewPanel";
 import ReviewTimeline from "@/components/ReviewTimeline";
 import StatusControls from "@/components/StatusControls";
 import { getIncident } from "@/lib/api";
+import { isValidIncidentId } from "@/lib/samples";
 import {
   RISK_FORMULA,
   assessmentStyle,
@@ -32,7 +33,7 @@ type Params = Promise<{ id: string }>;
 
 function parseId(raw: string): number | null {
   const id = Number(raw);
-  return Number.isInteger(id) && id > 0 ? id : null;
+  return isValidIncidentId(id) ? id : null;
 }
 
 export async function generateMetadata({ params }: { params: Params }) {
@@ -95,6 +96,12 @@ export default async function IncidentDetailPage({
       />
 
       {/* Alert banner */}
+      {incident.review_state_unavailable && (
+        <p role="status" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+          Live review history is temporarily unavailable. This is the original saved detection;
+          current review decisions may differ. Saving a decision requires a backend connection.
+        </p>
+      )}
       <AlertBox severity={incident.severity}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { reviewIncident, updateIncidentStatus } from "@/lib/api";
 import { ASSESSMENTS, STATUSES } from "@/lib/types";
+import { isValidIncidentId } from "@/lib/samples";
 
 export interface StatusActionResult {
   success: boolean;
@@ -22,7 +23,7 @@ export async function setIncidentStatus(
   incidentId: number,
   status: string,
 ): Promise<StatusActionResult> {
-  if (!Number.isInteger(incidentId) || incidentId <= 0) {
+  if (!isValidIncidentId(incidentId)) {
     return { success: false, error: "Invalid incident id" };
   }
   if (!(STATUSES as readonly string[]).includes(status)) {
@@ -67,7 +68,7 @@ export async function submitReview(input: {
   escalated?: boolean;
 }): Promise<ReviewActionResult> {
   const { incidentId } = input;
-  if (!Number.isInteger(incidentId) || incidentId <= 0) {
+  if (!isValidIncidentId(incidentId)) {
     return { success: false, error: "Invalid incident id" };
   }
 

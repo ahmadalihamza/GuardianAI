@@ -1,5 +1,24 @@
 # 🛡️ GuardianAI: Intelligent Emergency Detection and Response Platform
 
+### Prepared sample videos
+
+Open **Analyze Video** to choose among five supplied 10-second clips. Their
+original videos, H.264 annotated outputs, evidence frames and actual pipeline
+results are shipped in `frontend/public/samples/`. **Run Analysis · Instant Saved
+Result** opens the saved result in the browser without uploading or running YOLO.
+No-alert results are retained as no-alert results; sample titles are not model predictions.
+
+The backend seeds the detected sample alerts into the normal verification queue
+on startup. Reserved negative IDs keep sample links stable without conflicting
+with normal uploads. Seeding never overwrites review decisions or audit history.
+Render's ephemeral disk can still reset reviews on a redeploy; persistent storage
+is required to retain operator decisions across replacement instances.
+
+To regenerate the pack, install `imageio-ffmpeg` and run
+`python -m demo.prepare_samples --source-dir /path/to/the/five/clips` from the repo
+root. This is an offline preparation step, not a deployment/build step. The
+manifest includes SHA-256 source hashes and original processing durations.
+
 GuardianAI is a computer vision platform that analyzes surveillance video and flags events a human should look at. It combines a single YOLO11n detection pass, ByteTrack tracking, and five parallel rule engines — restricted-zone intrusion, falls, weapons, fire and smoke, and traffic accidents — behind a mandatory human-verification workflow with an append-only audit trail.
 
 ## 🎯 Problem Statement

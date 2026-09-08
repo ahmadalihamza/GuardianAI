@@ -109,6 +109,8 @@ async def lifespan(app: FastAPI):
     """Initialize database and load model on startup."""
     utils.ensure_directories()
     database.init_database()
+    from backend.samples import seed_samples
+    seed_samples()
     try:
         load_model()
     except Exception as e:

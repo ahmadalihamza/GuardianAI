@@ -307,6 +307,9 @@ export function mediaUrl(
   kind: MediaKind,
   pathOrName: string | null | undefined,
 ): string | null {
+  if (pathOrName && /^\/samples\/[a-zA-Z0-9_-]+\.(mp4|jpg)$/.test(pathOrName)) {
+    return pathOrName;
+  }
   const name = basename(pathOrName);
   if (!name) return null;
   return `/api/media/${kind}/${encodeURIComponent(name)}`;

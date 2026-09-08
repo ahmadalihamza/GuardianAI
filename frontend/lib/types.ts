@@ -94,6 +94,8 @@ export interface IncidentReview {
 }
 
 export interface Incident {
+  /** Original saved detection shown while live review state is unavailable. */
+  review_state_unavailable?: boolean;
   id: number;
   incident_code: string;
   event_type: string;
