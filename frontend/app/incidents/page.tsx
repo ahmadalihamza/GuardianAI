@@ -4,6 +4,7 @@ import IncidentFilters from "@/components/IncidentFilters";
 import PageHeader from "@/components/PageHeader";
 import { EmptyState } from "@/components/Panel";
 import RefreshButton from "@/components/RefreshButton";
+import { VideoIcon } from "@/components/Icons";
 import { getIncidents } from "@/lib/api";
 import type { IncidentFilters as Filters } from "@/lib/types";
 
@@ -43,12 +44,12 @@ export default async function IncidentsPage({
         title="Incidents"
         subtitle="Review, verify, and resolve detected surveillance events."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/analyze"
-              className="rounded-lg border border-line bg-raised hover:bg-raised-2 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors"
+              className="inline-flex h-10 w-[140px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-line bg-surface hover:bg-raised-2 px-4 py-2.5 text-xs font-medium text-ink transition-colors"
             >
-              Analyze Video
+              <VideoIcon size={16} />Analyze Video
             </Link>
             <RefreshButton />
           </div>
@@ -60,13 +61,13 @@ export default async function IncidentsPage({
 
       {/* Unified High-Density Incident List */}
       {incidents.length > 0 ? (
-        <div className="rounded-xl border border-line bg-surface divide-y divide-line overflow-hidden shadow-sm">
+        <div className="incident-list divide-y divide-line">
           {incidents.map((incident) => (
             <IncidentCard key={incident.id} incident={incident} />
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-line bg-surface p-6">
+        <div className="py-2">
           <EmptyState
             title={
               hasFilters
@@ -82,14 +83,14 @@ export default async function IncidentsPage({
               hasFilters ? (
                 <Link
                   href="/incidents"
-                  className="inline-flex items-center gap-2 rounded-lg bg-raised border border-line px-3.5 py-1.5 text-xs font-medium text-blue-400 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-raised border border-line px-3.5 py-1.5 text-xs font-medium text-accent hover:text-ink transition-colors"
                 >
                   Clear Filters
                 </Link>
               ) : (
                 <Link
                   href="/analyze"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-3.5 py-1.5 text-xs font-medium text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg button-primary bg-accent hover:bg-accent-hover px-3.5 py-1.5 text-xs font-medium text-ink transition-colors"
                 >
                   Upload Video
                 </Link>

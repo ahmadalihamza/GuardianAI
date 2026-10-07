@@ -62,12 +62,12 @@ export default async function OverviewPage() {
         title="Overview"
         subtitle="Summary of surveillance activity and detected safety incidents."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/analyze"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-3.5 py-2 text-xs font-semibold text-white transition-colors"
+              className="inline-flex h-10 w-[140px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md button-primary bg-accent hover:bg-accent-hover px-4 py-2.5 text-[13px] font-semibold text-ink transition-colors"
             >
-              <VideoIcon size={14} />
+              <VideoIcon size={18} />
               <span>Analyze Video</span>
             </Link>
             <RefreshButton />
@@ -76,18 +76,18 @@ export default async function OverviewPage() {
       />
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <MetricCard
           value={stats.total_incidents}
           label="Total Incidents"
-          icon={<ListFilterIcon size={14} />}
+          icon={<ListFilterIcon size={18} />}
           hint="All recorded events"
           badge={`${stats.total_incidents} logged`}
         />
         <MetricCard
           value={stats.pending_verification}
           label="Pending Review"
-          icon={<ClockIcon size={14} />}
+          icon={<ClockIcon size={18} />}
           status={stats.pending_verification > 0 ? "warn" : "ok"}
           hint="Operator check needed"
           badge={stats.pending_verification > 0 ? "Action needed" : "Up to date"}
@@ -95,7 +95,7 @@ export default async function OverviewPage() {
         <MetricCard
           value={stats.critical_pending}
           label="Critical Unreviewed"
-          icon={<SirenIcon size={14} />}
+          icon={<SirenIcon size={18} />}
           status={stats.critical_pending > 0 ? "danger" : "ok"}
           hint="Weapons, fire, collisions"
           badge={stats.critical_pending > 0 ? "Review first" : "Clear"}
@@ -103,7 +103,7 @@ export default async function OverviewPage() {
         <MetricCard
           value={stats.verified}
           label="Verified"
-          icon={<CheckCircleIcon size={14} />}
+          icon={<CheckCircleIcon size={18} />}
           status="ok"
           hint="Confirmed threats"
           badge="Validated"
@@ -111,7 +111,7 @@ export default async function OverviewPage() {
         <MetricCard
           value={stats.high_risk}
           label="High Risk"
-          icon={<AlertTriangleIcon size={14} />}
+          icon={<AlertTriangleIcon size={18} />}
           status={stats.high_risk > 0 ? "danger" : "ok"}
           hint="Score 70 or higher"
           badge={stats.high_risk > 0 ? "Urgent" : "None"}
@@ -119,7 +119,7 @@ export default async function OverviewPage() {
       </div>
 
       {/* Analytics Charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="workspace-band grid gap-8 xl:grid-cols-2">
         <Panel title="Event Types">
           <DonutChart
             data={eventSlices}
@@ -136,15 +136,15 @@ export default async function OverviewPage() {
       </div>
 
       {/* Recent Incidents & Verification quality */}
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-7">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <div className="xl:col-span-7">
           <Panel
             title="Recent Incidents"
             action={
               incidents.length > 0 ? (
                 <Link
                   href="/incidents"
-                  className="flex items-center gap-1 text-xs text-blue-400 hover:underline"
+                  className="flex items-center gap-1 text-xs text-accent hover:underline"
                 >
                   <span>View all ({incidents.length})</span>
                   <ChevronRightIcon size={12} />
@@ -153,7 +153,7 @@ export default async function OverviewPage() {
             }
           >
             {recent.length > 0 ? (
-              <div className="rounded-lg border border-line divide-y divide-line overflow-hidden bg-canvas">
+              <div className="incident-list divide-y divide-line">
                 {recent.map((incident) => (
                   <IncidentCard key={incident.id} incident={incident} />
                 ))}
@@ -165,7 +165,7 @@ export default async function OverviewPage() {
                 action={
                   <Link
                     href="/analyze"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg button-primary bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-medium text-ink transition-colors"
                   >
                     <VideoIcon size={13} />
                     <span>Upload Video</span>
@@ -176,7 +176,7 @@ export default async function OverviewPage() {
           </Panel>
         </div>
 
-        <div className="lg:col-span-5">
+        <div className="xl:col-span-5">
           <Panel title="Verification Quality">
             <VerificationPanel stats={stats} />
           </Panel>

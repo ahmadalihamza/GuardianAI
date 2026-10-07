@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0f19",
-  colorScheme: "dark",
+  themeColor: "#f5f7f6",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
 };
@@ -28,15 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className="min-h-screen bg-canvas text-ink antialiased"
         suppressHydrationWarning
       >
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <Sidebar />
-        <div className="lg:pl-64 flex min-h-screen flex-col">
+        <div className="lg:pl-60 flex min-h-screen flex-col">
           <TopBar />
-          <main className="flex-1 px-4 py-6 sm:px-8 lg:py-8 max-w-[1600px] w-full mx-auto">
+          <main id="main-content" className="app-main flex-1 px-4 py-6 sm:px-7 lg:px-8 lg:py-8 max-w-[1600px] w-full mx-auto">
             {children}
           </main>
         </div>

@@ -82,7 +82,7 @@ export default async function IncidentDetailPage({
       <div>
         <Link
           href="/incidents"
-          className="text-xs font-medium text-muted hover:text-white transition-colors"
+          className="text-xs font-medium text-muted hover:text-ink transition-colors"
         >
           ← Back to Incidents
         </Link>
@@ -97,7 +97,7 @@ export default async function IncidentDetailPage({
 
       {/* Alert banner */}
       {incident.review_state_unavailable && (
-        <p role="status" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+        <p role="status" className="rounded-lg border border-warn/30 bg-warn/10 p-3 text-sm text-warn">
           Live review history is temporarily unavailable. This is the original saved detection;
           current review decisions may differ. Saving a decision requires a backend connection.
         </p>
@@ -105,28 +105,25 @@ export default async function IncidentDetailPage({
       <AlertBox severity={incident.severity}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span aria-hidden className="text-base leading-none">
-              {theme.glyph}
-            </span>
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-ink">
               {incident.event_type}
             </span>
             <SeverityBadge severity={incident.severity} />
             <StatusBadge status={incident.status} />
             {isCritical && (
-              <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-300">
+              <span className="status-pill inline-flex items-center rounded-md border border-danger/40 bg-danger/10 px-2.5 py-0.5 text-xs font-medium text-danger">
                 Critical event type
               </span>
             )}
             {incident.escalated ? (
-              <span className="inline-flex items-center rounded-full border border-rose-500/40 bg-rose-500/15 px-2.5 py-0.5 text-xs font-semibold text-rose-200">
+              <span className="inline-flex items-center rounded-full border border-danger/40 bg-danger/10 px-2.5 py-0.5 text-xs font-semibold text-danger">
                 Escalated
               </span>
             ) : null}
           </div>
-          <div className="text-xs font-mono text-slate-300">
+          <div className="text-xs font-mono text-ink">
             Risk Score:{" "}
-            <strong className="text-white text-sm">
+            <strong className="text-ink text-sm">
               {incident.risk_score ?? "—"}
             </strong>{" "}
             / 100
@@ -185,7 +182,7 @@ export default async function IncidentDetailPage({
             </dl>
 
             <p className="mt-3 rounded-lg bg-canvas border border-line/60 p-2.5 text-[0.7rem] text-muted leading-relaxed">
-              <strong className="text-slate-300">{method.label}:</strong>{" "}
+              <strong className="text-ink">{method.label}:</strong>{" "}
               {method.detail}
               {box
                 ? ` Box at (${Math.round(box.x1)}, ${Math.round(box.y1)}) → (${Math.round(box.x2)}, ${Math.round(box.y2)}) in the source frame.`
@@ -194,13 +191,13 @@ export default async function IncidentDetailPage({
           </Panel>
 
           <Panel title="Incident Description">
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-ink leading-relaxed">
               {incident.explanation ??
                 "No description available for this incident."}
             </p>
             {incident.ai_summary && (
               <div className="mt-3 pt-3 border-t border-line text-xs text-muted leading-relaxed">
-                <strong className="text-slate-300 block mb-1">
+                <strong className="text-ink block mb-1">
                   AI Summary:
                 </strong>
                 {incident.ai_summary}
@@ -231,7 +228,7 @@ export default async function IncidentDetailPage({
                 <span className="text-xs text-muted font-medium">
                   Overall Score
                 </span>
-                <span className="text-xl font-bold font-mono text-white">
+                <span className="text-xl font-bold font-mono text-ink">
                   {incident.risk_score ?? "—"}{" "}
                   <span className="text-xs text-muted font-normal">/ 100</span>
                 </span>
@@ -241,7 +238,7 @@ export default async function IncidentDetailPage({
               <ul className="space-y-3 pt-1">
                 {contributions.map((row) => (
                   <li key={row.label} className="text-xs">
-                    <div className="flex justify-between text-slate-300 mb-1">
+                    <div className="flex justify-between text-ink mb-1">
                       <span>
                         {row.label}{" "}
                         <span className="text-[0.7rem] text-muted">
@@ -268,7 +265,7 @@ export default async function IncidentDetailPage({
               <div className="rounded-lg bg-canvas border border-line p-2.5 text-[0.7rem] text-muted space-y-1">
                 <p>
                   <strong>Formula:</strong>{" "}
-                  <code className="font-mono text-slate-300">
+                  <code className="font-mono text-ink">
                     {RISK_FORMULA}
                   </code>
                 </p>
@@ -294,9 +291,9 @@ export default async function IncidentDetailPage({
           >
             {incident.reviewed_by ? (
               <div className="mb-4 rounded-lg border border-line bg-canvas p-3 text-xs">
-                <p className="text-slate-300">
+                <p className="text-ink">
                   Last reviewed by{" "}
-                  <strong className="text-white">{incident.reviewed_by}</strong>{" "}
+                  <strong className="text-ink">{incident.reviewed_by}</strong>{" "}
                   on{" "}
                   <span className="font-mono">
                     {formatDateTime(incident.reviewed_at)}

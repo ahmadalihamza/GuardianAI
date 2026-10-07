@@ -38,15 +38,14 @@ export default function BarChart({
               key={bar.label}
               className="flex h-full max-w-28 flex-1 flex-col items-center justify-end gap-2 group"
             >
-              <span className="font-mono text-xs font-bold text-slate-200 tabular-nums">
+              <span className="font-mono text-xs font-bold text-ink tabular-nums">
                 {bar.value}
               </span>
               <div
-                className="w-full rounded-t-md transition-all duration-500 ease-out group-hover:brightness-110 shadow-lg"
+                className="w-full rounded-t-md transition-all duration-500 ease-out group-hover:brightness-110"
                 style={{
-                  height: `${pct}%`,
+                  height: `${pct * 0.8}%`,
                   backgroundColor: bar.color,
-                  boxShadow: `0 0 15px -3px ${bar.color}40`,
                 }}
               />
             </div>
@@ -57,7 +56,7 @@ export default function BarChart({
         {bars.map((bar) => (
           <span
             key={bar.label}
-            className="max-w-28 flex-1 text-center text-xs font-semibold uppercase tracking-wider text-slate-400"
+            className="max-w-28 flex-1 text-center text-xs font-semibold uppercase tracking-normal text-muted"
           >
             {bar.label}
           </span>

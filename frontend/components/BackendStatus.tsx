@@ -48,10 +48,10 @@ export default function BackendStatus({ compact = false }: { compact?: boolean }
         <span
           className={`h-2 w-2 rounded-full ${
             loading
-              ? "bg-amber-400 animate-pulse"
+              ? "bg-warn animate-pulse"
               : isOnline
-              ? "bg-emerald-500"
-              : "bg-rose-500"
+              ? "bg-ok"
+              : "bg-danger"
           }`}
         />
         <span className="text-muted text-[0.75rem]">
@@ -63,19 +63,19 @@ export default function BackendStatus({ compact = false }: { compact?: boolean }
 
   return (
     <div className="border-t border-line p-4">
-      <div className="rounded-lg bg-surface border border-line p-3 text-xs space-y-2.5">
+      <div className="text-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
               className={`h-2 w-2 rounded-full shrink-0 ${
                 loading
-                  ? "bg-amber-400 animate-pulse"
+                  ? "bg-warn animate-pulse"
                   : isOnline
-                  ? "bg-emerald-500"
-                  : "bg-rose-500"
+                  ? "bg-ok"
+                  : "bg-danger"
               }`}
             />
-            <span className="font-semibold text-slate-200">
+            <span className="font-semibold text-ink">
               {loading ? "Checking status..." : isOnline ? "System Ready" : "Backend Offline"}
             </span>
           </div>
@@ -94,16 +94,16 @@ export default function BackendStatus({ compact = false }: { compact?: boolean }
           )}
         </div>
 
-        <div className="space-y-1.5 pt-1 border-t border-line/60 text-[0.7rem] text-muted">
-          <div className="flex justify-between">
+        <div className="space-y-2 pt-3 border-t border-line/60 text-[0.7rem] text-muted">
+          <div className="flex flex-wrap justify-between gap-1">
             <span>Detection Model</span>
-            <span className={health?.model_loaded ? "text-slate-200 font-medium" : "text-rose-400"}>
+            <span className={health?.model_loaded ? "text-ink font-medium" : "text-danger"}>
               {health?.model_loaded ? "YOLO11n (Loaded)" : "Not Loaded"}
             </span>
           </div>
           <div className="flex justify-between">
             <span>Database</span>
-            <span className={health?.database_connected ? "text-slate-200 font-medium" : "text-rose-400"}>
+            <span className={health?.database_connected ? "text-ink font-medium" : "text-danger"}>
               {health?.database_connected ? "Connected" : "Disconnected"}
             </span>
           </div>

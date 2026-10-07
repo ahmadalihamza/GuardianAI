@@ -10,19 +10,19 @@ const ACTIONS = [
     status: "Verified",
     label: "Verify as Valid Threat",
     icon: CheckCircleIcon,
-    classes: "border-sky-500/40 bg-sky-500/15 text-sky-300 hover:bg-sky-500/25 hover:border-sky-500/60 shadow-sm",
+    classes: "border-accent/40 bg-accent/10 text-accent hover:bg-accent/10 hover:border-accent/60 shadow-sm",
   },
   {
     status: "Dismissed",
     label: "Dismiss as False Alarm",
     icon: XCircleIcon,
-    classes: "border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-300",
+    classes: "border-line-strong bg-raised/60 text-ink hover:bg-danger/10 hover:border-danger/40 hover:text-danger",
   },
   {
     status: "Resolved",
     label: "Resolve & Close Incident",
     icon: ShieldIcon,
-    classes: "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:border-emerald-500/60 shadow-sm",
+    classes: "border-ok/40 bg-ok/10 text-ok hover:bg-ok/10 hover:border-ok/60 shadow-sm",
   },
 ] as const;
 
@@ -75,7 +75,7 @@ export default function StatusControls({
                   ? `${action.label} (currently ${action.status})`
                   : action.label
               }
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 active:scale-95 ${action.classes}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg border p-3 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 active:scale-95 ${action.classes}`}
             >
               {busy === action.status ? (
                 <RefreshIcon size={14} className="animate-spin" />
@@ -91,16 +91,16 @@ export default function StatusControls({
       {message ? (
         <div
           aria-live="polite"
-          className={`flex items-center gap-2 rounded-xl border p-3 text-xs font-semibold ${
+          className={`flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold ${
             message.kind === "ok"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-              : "border-rose-500/40 bg-rose-500/10 text-rose-300"
+              ? "border-ok/40 bg-ok/10 text-ok"
+              : "border-danger/40 bg-danger/10 text-danger"
           }`}
         >
           {message.kind === "ok" ? (
-            <CheckCircleIcon size={16} className="text-emerald-400" />
+            <CheckCircleIcon size={16} className="text-ok" />
           ) : (
-            <XCircleIcon size={16} className="text-rose-400" />
+            <XCircleIcon size={16} className="text-danger" />
           )}
           <span>{message.text}</span>
         </div>

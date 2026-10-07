@@ -25,81 +25,54 @@ function isActive(pathname: string, href: string): boolean {
 
 function Wordmark() {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">
-        <ShieldIcon size={18} />
-      </div>
-      <div>
-        <span className="font-semibold text-sm tracking-tight text-white block">
-          GuardianAI
-        </span>
-        <span className="text-[0.7rem] text-slate-400 block leading-none">
-          Surveillance Monitoring
-        </span>
-      </div>
+    <Link href="/" className="flex items-center gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-on-dark">
+        <ShieldIcon size={23} strokeWidth={1.7} />
+      </span>
+      <span>
+        <span className="block text-[21px] font-bold leading-tight text-ink">GuardianAI</span>
+        <span className="mt-0.5 block text-[11px] font-medium text-muted">Surveillance Monitoring</span>
+      </span>
     </Link>
   );
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
-
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface lg:flex">
-        <div className="p-4 border-b border-line">
-          <Wordmark />
-        </div>
-
-        <nav className="flex-1 space-y-1 p-3" aria-label="Main">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface lg:flex">
+        <div className="px-5 pb-7 pt-7"><Wordmark /></div>
+        <div className="px-6 pb-3 text-[11px] font-semibold uppercase text-dim">Workspace</div>
+        <nav className="flex-1 space-y-1.5 px-3" aria-label="Main">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-blue-600/10 text-blue-400 font-semibold"
-                    : "text-slate-400 hover:bg-raised hover:text-slate-200"
-                }`}
-              >
-                <Icon size={16} className={active ? "text-blue-400" : "text-slate-400"} />
+              <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined}
+                className="app-nav-link flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold text-muted">
+                <Icon size={19} strokeWidth={1.7} />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
-
         <BackendStatus />
       </aside>
-
-      {/* Mobile top bar */}
       <header className="sticky top-0 z-30 border-b border-line bg-surface lg:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between gap-2 px-4 py-4">
           <Wordmark />
           <BackendStatus compact />
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-2" aria-label="Main">
+        <nav className="app-mobile-nav grid grid-cols-4 gap-1 px-2 pb-2" aria-label="Main">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active
-                    ? "bg-blue-600/15 text-blue-400 font-semibold"
-                    : "text-slate-400 hover:bg-raised hover:text-slate-200"
-                }`}
-              >
-                <Icon size={14} className={active ? "text-blue-400" : "text-slate-400"} />
-                {item.label}
+              <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined}
+                className="app-nav-link flex min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 py-2 text-[10px] font-semibold text-muted">
+                <Icon size={17} strokeWidth={1.7} />
+                <span className="text-center">{item.label}</span>
               </Link>
             );
           })}

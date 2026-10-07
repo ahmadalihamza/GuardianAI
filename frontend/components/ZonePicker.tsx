@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { Zone } from "@/lib/types";
-import { CameraIcon } from "@/components/Icons";
+import { CameraIcon, CrosshairIcon } from "@/components/Icons";
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -114,13 +114,13 @@ export default function ZonePicker({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(preset.zone)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 ${
+                className={`min-h-9 rounded-md px-2.5 py-2 text-xs font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 ${
                   active
-                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm"
-                    : "border border-line bg-raised hover:bg-raised-2 text-slate-300 hover:text-white"
+                    ? "bg-danger/10 text-danger border border-danger/40 shadow-sm"
+                    : "border border-line bg-raised hover:bg-raised-2 text-ink hover:text-ink"
                 }`}
               >
-                {active && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
+                {active && <span className="h-1.5 w-1.5 rounded-full bg-danger" />}
                 <span>{preset.name}</span>
               </button>
             );
@@ -129,7 +129,10 @@ export default function ZonePicker({
       </div>
 
       {/* Surveillance Viewport Container */}
-      <div className="relative overflow-hidden rounded-xl border border-line bg-black/90 shadow-2xl group">
+      {!videoUrl && (
+        <p className="flex items-center gap-2 text-xs text-muted"><CameraIcon size={16} />No video selected</p>
+      )}
+      <div className="relative overflow-hidden rounded-lg border border-line bg-surface group">
         {videoUrl ? (
           <video
             src={videoUrl}
@@ -139,23 +142,7 @@ export default function ZonePicker({
             className="block max-h-[440px] w-full object-contain mx-auto bg-black"
           />
         ) : (
-          <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 p-6 text-center text-muted bg-gradient-to-b from-surface/80 to-surface/40">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-raised border border-line text-slate-400">
-              <CameraIcon size={22} />
-              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-200">
-                Awaiting Surveillance Footage
-              </p>
-              <p className="text-xs text-muted mt-1 max-w-sm">
-                Upload a video above or test with preset boundaries. The restricted zone responds below in real-time.
-              </p>
-            </div>
-          </div>
+          <div className="aspect-video w-full bg-raised/50" />
         )}
 
         {/* Interactive Calibration Overlay */}
@@ -173,7 +160,7 @@ export default function ZonePicker({
         >
           {/* Active Restricted Zone Box with Smooth Interpolated Transitions */}
           <div
-            className={`absolute zone-active-box rounded border border-rose-500/70 shadow-lg ${
+            className={`absolute zone-active-box rounded border border-danger/70 ${
               dragging
                 ? "transition-none"
                 : "transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
@@ -186,24 +173,21 @@ export default function ZonePicker({
             }}
           >
             {/* 4 Precision Corner Calibration Brackets */}
-            <span className="absolute -top-[1px] -left-[1px] h-2.5 w-2.5 border-t-2 border-l-2 border-rose-400 pointer-events-none" />
-            <span className="absolute -top-[1px] -right-[1px] h-2.5 w-2.5 border-t-2 border-r-2 border-rose-400 pointer-events-none" />
-            <span className="absolute -bottom-[1px] -left-[1px] h-2.5 w-2.5 border-b-2 border-l-2 border-rose-400 pointer-events-none" />
-            <span className="absolute -bottom-[1px] -right-[1px] h-2.5 w-2.5 border-b-2 border-r-2 border-rose-400 pointer-events-none" />
+            <span className="absolute -top-[1px] -left-[1px] h-2.5 w-2.5 border-t-2 border-l-2 border-danger pointer-events-none" />
+            <span className="absolute -top-[1px] -right-[1px] h-2.5 w-2.5 border-t-2 border-r-2 border-danger pointer-events-none" />
+            <span className="absolute -bottom-[1px] -left-[1px] h-2.5 w-2.5 border-b-2 border-l-2 border-danger pointer-events-none" />
+            <span className="absolute -bottom-[1px] -right-[1px] h-2.5 w-2.5 border-b-2 border-r-2 border-danger pointer-events-none" />
 
             {/* Subtle Center Crosshair */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 text-rose-400">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <line x1="9" y1="3" x2="9" y2="15" />
-                <line x1="3" y1="9" x2="15" y2="9" />
-              </svg>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30 text-danger">
+              <CrosshairIcon size={18} />
             </div>
 
             {/* Professional Floating Badge */}
-            <div className="absolute left-2 top-2 pointer-events-none flex items-center gap-1.5 rounded-md bg-rose-950/85 backdrop-blur-md px-2 py-1 border border-rose-500/40 text-[0.65rem] font-bold text-rose-200 shadow-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />
-              <span className="uppercase tracking-wider">Restricted Zone</span>
-              <span className="font-mono font-normal text-rose-300/80 pl-1 border-l border-rose-500/30">
+            <div className="absolute left-1 top-1 pointer-events-none flex max-w-[calc(100%-8px)] flex-wrap items-center gap-1 rounded bg-black/75 px-1.5 py-1 text-[9px] font-semibold text-on-dark">
+              <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse shrink-0" />
+              <span className="uppercase tracking-normal">Restricted Zone</span>
+              <span className="font-mono font-normal text-on-dark/80">
                 {widthPct}% × {heightPct}%
               </span>
             </div>
@@ -211,8 +195,8 @@ export default function ZonePicker({
 
           {/* Draw Mode Help Banner */}
           {drawMode && !disabled && (
-            <div className="absolute inset-x-0 bottom-0 bg-slate-950/90 backdrop-blur-md border-t border-rose-500/30 px-4 py-2 text-center text-xs text-rose-300 font-medium flex items-center justify-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+            <div className="absolute inset-x-0 bottom-0 bg-black/85 border-t border-danger/30 px-4 py-2 text-center text-xs text-on-dark font-medium flex items-center justify-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-danger animate-ping" />
               <span>Click and drag across the viewport to calibrate custom boundary</span>
             </div>
           )}
@@ -225,23 +209,19 @@ export default function ZonePicker({
           type="button"
           disabled={disabled}
           onClick={() => setDrawMode((mode) => !mode)}
-          className={`rounded-lg border px-3 py-1.5 font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 ${
+          className={`min-h-10 rounded-md border px-3 py-2 font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 ${
             drawMode
-              ? "border-rose-500 bg-rose-500/20 text-rose-300 shadow"
-              : "border-line bg-raised hover:bg-raised-2 text-slate-200 hover:text-white"
+              ? "border-danger bg-danger/10 text-danger shadow"
+              : "border-line bg-raised hover:bg-raised-2 text-ink hover:text-ink"
           }`}
         >
-          <span
-            className={`h-2 w-2 rounded-full ${
-              drawMode ? "bg-rose-400 animate-pulse" : "bg-slate-400"
-            }`}
-          />
+          <CrosshairIcon size={15} />
           <span>{drawMode ? "Cancel Drawing" : "Draw Custom Boundary"}</span>
         </button>
 
         <div className="flex items-center gap-2 font-mono text-[0.7rem] text-muted bg-surface border border-line px-2.5 py-1 rounded-md">
           <span>Boundary:</span>
-          <span className="text-slate-200">
+          <span className="text-ink">
             [{left.toFixed(2)}, {top.toFixed(2)}] → [{(left + width).toFixed(2)}, {(top + height).toFixed(2)}]
           </span>
         </div>

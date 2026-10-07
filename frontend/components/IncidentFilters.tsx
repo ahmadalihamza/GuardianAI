@@ -7,7 +7,7 @@ import type { IncidentFilters as Filters } from "@/lib/types";
 import { SearchIcon, XIcon } from "@/components/Icons";
 
 const selectClass =
-  "rounded-lg border border-line bg-surface hover:border-slate-600 px-2.5 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none cursor-pointer transition-colors";
+  "h-10 max-w-full rounded-md border border-line bg-surface hover:border-line-strong px-3 text-xs text-ink focus:border-accent focus:outline-accent cursor-pointer transition-colors";
 
 export default function IncidentFilters({
   value,
@@ -44,16 +44,16 @@ export default function IncidentFilters({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 p-2 bg-surface/70 border border-line rounded-xl">
+    <div className="flex flex-col items-stretch justify-between gap-4 border-y border-line bg-surface px-3 py-3 xl:flex-row xl:items-center">
       {/* Left: Quick Status Tabs */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
         <button
           type="button"
           onClick={() => applyFilter("status", undefined)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+          className={`min-h-10 rounded-md border border-transparent px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
             !value.status
-              ? "bg-blue-600 text-white shadow-sm"
-              : "text-slate-400 hover:text-white hover:bg-raised"
+              ? "button-primary bg-accent text-ink shadow-sm"
+              : "text-muted hover:text-ink hover:bg-raised"
           }`}
         >
           All
@@ -61,10 +61,10 @@ export default function IncidentFilters({
         <button
           type="button"
           onClick={() => applyFilter("status", "Pending Verification")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+          className={`min-h-10 rounded-md border border-transparent px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
             value.status === "Pending Verification"
-              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-              : "text-slate-400 hover:text-white hover:bg-raised"
+              ? "bg-warn/10 text-warn border border-warn/40"
+              : "text-muted hover:text-ink hover:bg-raised"
           }`}
         >
           Pending Review
@@ -72,10 +72,10 @@ export default function IncidentFilters({
         <button
           type="button"
           onClick={() => applyFilter("status", "Verified")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+          className={`min-h-10 rounded-md border border-transparent px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
             value.status === "Verified"
-              ? "bg-blue-600/20 text-blue-300 border border-blue-500/40"
-              : "text-slate-400 hover:text-white hover:bg-raised"
+              ? "bg-accent/10 text-accent border border-accent/40"
+              : "text-muted hover:text-ink hover:bg-raised"
           }`}
         >
           Verified
@@ -83,10 +83,10 @@ export default function IncidentFilters({
         <button
           type="button"
           onClick={() => applyFilter("status", "Resolved")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+          className={`min-h-10 rounded-md border border-transparent px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
             value.status === "Resolved"
-              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-              : "text-slate-400 hover:text-white hover:bg-raised"
+              ? "bg-ok/10 text-ok border border-ok/40"
+              : "text-muted hover:text-ink hover:bg-raised"
           }`}
         >
           Resolved
@@ -99,28 +99,30 @@ export default function IncidentFilters({
         <form
           ref={formRef}
           onSubmit={handleSearchSubmit}
-          className="relative flex-1 sm:w-48 lg:w-56"
+          className="relative w-full min-w-[180px] flex-1 sm:w-48"
         >
           <SearchIcon
-            size={13}
-            className="absolute left-2.5 top-2.5 text-slate-500 pointer-events-none"
+            size={16}
+            className="absolute left-2.5 top-3 text-muted pointer-events-none"
           />
           <input
             type="search"
+            aria-label="Search location"
             name="location"
             defaultValue={value.location ?? ""}
-            placeholder="Search camera/location..."
+            placeholder="Search location..."
             onBlur={(e) => {
               if (e.target.value !== (value.location ?? "")) {
                 applyFilter("location", e.target.value.trim());
               }
             }}
-            className="w-full rounded-lg border border-line bg-canvas pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+            className="h-10 w-full rounded-md border border-line bg-canvas pl-9 pr-3 text-xs text-ink placeholder:text-muted focus:border-accent focus:outline-accent"
           />
         </form>
 
         {/* Event Type Filter — grouped, because there are eleven of them */}
         <select
+          aria-label="Event type"
           value={value.event_type ?? ""}
           onChange={(e) => applyFilter("event_type", e.target.value)}
           className={selectClass}
@@ -139,6 +141,7 @@ export default function IncidentFilters({
 
         {/* Severity Filter */}
         <select
+          aria-label="Severity"
           value={value.severity ?? ""}
           onChange={(e) => applyFilter("severity", e.target.value)}
           className={selectClass}
@@ -157,7 +160,8 @@ export default function IncidentFilters({
             type="button"
             onClick={() => startTransition(() => router.push("/incidents"))}
             title="Reset filters"
-            className="rounded-lg border border-line bg-raised hover:bg-raised-2 p-1.5 text-slate-400 hover:text-white transition-colors"
+            aria-label="Reset filters"
+            className="h-10 w-10 flex items-center justify-center rounded-md border border-line bg-raised hover:bg-raised-2 text-muted hover:text-ink transition-colors"
           >
             <XIcon size={14} />
           </button>

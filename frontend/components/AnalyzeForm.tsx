@@ -14,6 +14,11 @@ import {
   CheckCircleIcon,
   AlertTriangleIcon,
   RefreshIcon,
+  LockIcon,
+  HeartPulseIcon,
+  CrosshairIcon,
+  FlameIcon,
+  CarIcon,
 } from "@/components/Icons";
 
 const ACCEPTED_EXTENSIONS = [".mp4", ".avi", ".mov", ".mkv", ".webm"];
@@ -39,14 +44,14 @@ function formatBytes(bytes: number): string {
 function FeatureToggle({
   label,
   hint,
-  glyph,
+  icon,
   checked,
   disabled,
   onChange,
 }: {
   label: string;
   hint: string;
-  glyph: string;
+  icon: React.ReactNode;
   checked: boolean;
   disabled: boolean;
   onChange: (value: boolean) => void;
@@ -55,16 +60,16 @@ function FeatureToggle({
     <label
       className={`flex items-center justify-between gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
         checked
-          ? "border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/10"
+          ? "border-accent/40 bg-accent/5 hover:bg-accent/10"
           : "border-line bg-canvas hover:bg-raised/40"
       }`}
     >
       <div className="flex items-start gap-2.5 min-w-0">
-        <span aria-hidden className="text-sm leading-5 shrink-0">
-          {glyph}
+        <span aria-hidden className="text-accent leading-5 shrink-0 pt-0.5">
+          {icon}
         </span>
         <div className="min-w-0">
-          <span className="text-xs font-medium text-white block">{label}</span>
+          <span className="text-xs font-medium text-ink block">{label}</span>
           <span className="text-[0.7rem] text-muted block">{hint}</span>
         </div>
       </div>
@@ -73,7 +78,7 @@ function FeatureToggle({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 shrink-0 rounded accent-blue-600"
+        className="h-4 w-4 shrink-0 rounded accent-accent"
       />
     </label>
   );
@@ -379,22 +384,22 @@ export default function AnalyzeForm() {
                   setDragActive(false);
                   if (!busy) acceptFile(e.dataTransfer.files?.[0]);
                 }}
-                className={`rounded-xl border border-dashed p-5 text-center transition-colors ${
+                className={`rounded-lg border border-dashed p-5 text-center transition-colors ${
                   dragActive
-                    ? "border-blue-500 bg-blue-500/10"
+                    ? "border-accent bg-accent/10"
                     : file
-                    ? "border-emerald-500/40 bg-emerald-500/5"
-                    : "border-line bg-canvas hover:border-slate-600"
+                    ? "border-ok/40 bg-ok/5"
+                    : "border-line bg-canvas hover:border-line-strong"
                 }`}
               >
                 {file ? (
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ok/10 text-ok">
                         <CheckCircleIcon size={18} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
+                        <p className="text-sm font-semibold text-ink break-all">
                           {file.name}
                         </p>
                         <p className="text-xs text-muted">
@@ -410,7 +415,7 @@ export default function AnalyzeForm() {
                           setResult(null);
                           setPhase("idle");
                         }}
-                        className="rounded-md border border-line bg-raised hover:bg-raised-2 px-3 py-1 text-xs font-medium text-slate-300"
+                        className="min-h-9 rounded-md border border-line bg-raised hover:bg-raised-2 px-3 py-2 text-xs font-medium text-ink"
                       >
                         Change
                       </button>
@@ -418,21 +423,21 @@ export default function AnalyzeForm() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-2.5 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-raised text-blue-400">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-raised text-accent">
                       <UploadCloudIcon size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-200">
+                      <p className="text-sm font-medium text-ink">
                         Drag and drop a video file here
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
                         Supports MP4, AVI, MOV, MKV, or WEBM
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex flex-wrap justify-center items-center gap-2 mt-1">
                       <label
                         htmlFor="video-input"
-                        className="cursor-pointer rounded-lg bg-blue-600 hover:bg-blue-500 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors"
+                        className="inline-flex min-h-10 items-center cursor-pointer rounded-md button-primary bg-accent hover:bg-accent-hover px-3.5 py-1.5 text-xs font-semibold text-ink transition-colors"
                       >
                         Choose File
                       </label>
@@ -441,7 +446,7 @@ export default function AnalyzeForm() {
                         type="button"
                         disabled={loadingDemo || busy}
                         onClick={loadDemoVideo}
-                        className="rounded-lg border border-line bg-raised hover:bg-raised-2 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                        className="min-h-10 rounded-md border border-line bg-raised hover:bg-raised-2 px-3 py-2 text-xs font-medium text-ink hover:text-ink transition-colors"
                       >
                         {loadingDemo ? "Loading sample..." : "Load Sample Video"}
                       </button>
@@ -476,43 +481,46 @@ export default function AnalyzeForm() {
               {/* Camera & Location */}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                  <label htmlFor="camera-name" className="text-xs font-medium text-ink block mb-1">
                     Camera Name
                   </label>
                   <input
+                    id="camera-name"
                     type="text"
                     value={cameraName}
                     disabled={busy}
                     onChange={(e) => setCameraName(e.target.value)}
                     placeholder="e.g. Camera 01"
-                    className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-ink focus:border-accent focus:outline-accent"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                  <label htmlFor="camera-location" className="text-xs font-medium text-ink block mb-1">
                     Location
                   </label>
                   <input
+                    id="camera-location"
                     type="text"
                     value={location}
                     disabled={busy}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="e.g. Main Entrance"
-                    className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-ink focus:border-accent focus:outline-accent"
                   />
                 </div>
               </div>
 
               {/* Sensitivity */}
-              <div className="rounded-lg bg-canvas border border-line p-3.5 space-y-2">
+              <div className="border-y border-line py-4 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-slate-300">Zone Sensitivity</span>
-                  <span className="font-mono text-blue-400 font-semibold">
+                  <span className="font-medium text-ink">Zone Sensitivity</span>
+                  <span className="font-mono text-accent font-semibold">
                     {Math.round(zoneSensitivity * 100)}%
                   </span>
                 </div>
                 <input
                   type="range"
+                  aria-label="Zone sensitivity"
                   min={0.1}
                   max={1.0}
                   step={0.05}
@@ -530,7 +538,7 @@ export default function AnalyzeForm() {
               {/* Detection checkboxes */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-medium text-slate-300">
+                  <span className="text-xs font-medium text-ink">
                     Detection Features
                   </span>
                   <span className="text-[0.7rem] text-muted font-mono">
@@ -541,7 +549,7 @@ export default function AnalyzeForm() {
                 <FeatureToggle
                   label="Restricted Zone Intrusion"
                   hint="Alerts when people cross into the defined boundary"
-                  glyph="🔒"
+                  icon={<LockIcon size={17} />}
                   checked={enableIntrusion}
                   disabled={busy}
                   onChange={setEnableIntrusion}
@@ -550,7 +558,7 @@ export default function AnalyzeForm() {
                 <FeatureToggle
                   label="Fall Detection"
                   hint="Alerts on sudden horizontal posture transitions"
-                  glyph="🚑"
+                  icon={<HeartPulseIcon size={17} />}
                   checked={enableFall}
                   disabled={busy}
                   onChange={setEnableFall}
@@ -559,7 +567,7 @@ export default function AnalyzeForm() {
                 <FeatureToggle
                   label="Weapon Detection"
                   hint="Flags knives, bats and scissors, and links them to whoever is holding them"
-                  glyph="🔪"
+                  icon={<CrosshairIcon size={17} />}
                   checked={enableWeapon}
                   disabled={busy}
                   onChange={setEnableWeapon}
@@ -568,7 +576,7 @@ export default function AnalyzeForm() {
                 <FeatureToggle
                   label="Fire & Smoke Detection"
                   hint="Colour, flicker and drift analysis on the frame itself"
-                  glyph="🔥"
+                  icon={<FlameIcon size={17} />}
                   checked={enableFire}
                   disabled={busy}
                   onChange={setEnableFire}
@@ -577,14 +585,14 @@ export default function AnalyzeForm() {
                 <FeatureToggle
                   label="Traffic Accident Detection"
                   hint="Collisions, rollovers and hard braking from tracked vehicle motion"
-                  glyph="🚗"
+                  icon={<CarIcon size={17} />}
                   checked={enableAccident}
                   disabled={busy}
                   onChange={setEnableAccident}
                 />
 
                 {enabledCount === 0 && (
-                  <p className="text-[0.7rem] text-amber-300/90 px-1">
+                  <p className="text-[0.7rem] text-warn/90 px-1">
                     All detectors are off — the video will be annotated but no
                     incidents will be raised.
                   </p>
@@ -594,11 +602,11 @@ export default function AnalyzeForm() {
                     Weapon and fire detection run without a purpose-trained
                     checkpoint by default, so treat their output as a prompt to
                     look, not a conclusion. Point{" "}
-                    <code className="font-mono text-slate-300">
+                    <code className="font-mono text-ink">
                       WEAPON_MODEL_PATH
                     </code>{" "}
                     /{" "}
-                    <code className="font-mono text-slate-300">
+                    <code className="font-mono text-ink">
                       FIRE_MODEL_PATH
                     </code>{" "}
                     at your own weights to replace the heuristics.
@@ -608,8 +616,8 @@ export default function AnalyzeForm() {
 
               {/* Error box */}
               {error && (
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300 flex items-center gap-2">
-                  <AlertTriangleIcon size={16} className="shrink-0 text-red-400" />
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-danger flex items-center gap-2">
+                  <AlertTriangleIcon size={16} className="shrink-0 text-danger" />
                   <span>{error}</span>
                 </div>
               )}
@@ -619,7 +627,7 @@ export default function AnalyzeForm() {
                 <button
                   type="submit"
                   disabled={busy || !file}
-                  className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm py-2.5 px-4 transition-colors disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  className="w-full rounded-lg button-primary bg-accent hover:bg-accent-hover text-ink font-semibold text-sm py-2.5 px-4 transition-colors disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                 >
                   <VideoIcon size={16} />
                   <span>
@@ -637,7 +645,7 @@ export default function AnalyzeForm() {
               {/* Honest processing status */}
               {busy && (
                 <div className="rounded-lg bg-canvas border border-line p-3 text-xs text-muted space-y-2 text-center">
-                  <p className="text-slate-200 font-medium">
+                  <p className="text-ink font-medium">
                     {phase === "uploading"
                       ? "Uploading video to server..."
                       : phase === "queued"
@@ -659,7 +667,7 @@ export default function AnalyzeForm() {
                       aria-valuenow={analysisProgress}
                     >
                       <div
-                        className="h-full rounded-full bg-blue-500 transition-[width] duration-300"
+                        className="h-full rounded-full bg-accent transition-[width] duration-300"
                         style={{ width: `${analysisProgress}%` }}
                       />
                     </div>
@@ -674,16 +682,16 @@ export default function AnalyzeForm() {
       {/* Results view */}
       {result && result.success && (
         <section className="space-y-6 pt-4 border-t border-line">
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-lg border border-ok/30 bg-ok/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ok/10 text-ok">
                 <CheckCircleIcon size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">
+                <h3 className="text-sm font-semibold text-ink">
                   Analysis Complete
                 </h3>
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-ink">
                   {result.people_tracked ?? 0} people tracked
                   {(result.vehicles_tracked ?? 0) > 0
                     ? ` · ${result.vehicles_tracked} vehicles tracked`
@@ -699,11 +707,11 @@ export default function AnalyzeForm() {
               <div className="flex flex-wrap items-center gap-1.5">
                 {(
                   [
-                    ["intrusion", "🔒 Intrusion"],
-                    ["fall", "🚑 Fall"],
-                    ["weapon", "🔪 Weapon"],
-                    ["fire", "🔥 Fire"],
-                    ["accident", "🚗 Traffic"],
+                    ["intrusion", "Intrusion"],
+                    ["fall", "Fall"],
+                    ["weapon", "Weapon"],
+                    ["fire", "Fire"],
+                    ["accident", "Traffic"],
                   ] as const
                 )
                   .filter(([key]) => result.features?.[key])
@@ -715,7 +723,7 @@ export default function AnalyzeForm() {
                           ? "Ran with a custom trained checkpoint"
                           : undefined
                       }
-                      className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.7rem] font-medium text-emerald-300"
+                      className="rounded-full border border-ok/30 bg-ok/10 px-2 py-0.5 text-[0.7rem] font-medium text-ok"
                     >
                       {label}
                       {result.custom_models?.[key] ? " ✦" : ""}
@@ -730,7 +738,7 @@ export default function AnalyzeForm() {
             <div className="lg:col-span-7">
               <Panel title="Processed Video with Detection Overlays">
                 {result.processed_video_path ? (
-                  <div className="overflow-hidden rounded-xl border border-line bg-black">
+                  <div className="media-surface">
                     <video
                       src={mediaUrl("processed", result.processed_video_path) ?? ""}
                       controls

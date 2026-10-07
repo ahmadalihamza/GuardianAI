@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import IncidentCard from "@/components/IncidentCard";
 import { EmptyState, Panel } from "@/components/Panel";
+import { ArrowRightIcon, CheckIcon, CheckCircleIcon, PlayIcon, VideoIcon } from "@/components/Icons";
 import { PREPARED_SAMPLES } from "@/lib/samples";
 
 export default function SampleLibrary() {
@@ -14,12 +15,11 @@ export default function SampleLibrary() {
   const result = sample.result;
 
   return (
-    <section id="sample-library" className="space-y-5">
-      <Panel title="Sample Video Library · Ready to review">
-        <p className="mb-4 text-sm text-slate-300">
-          These five 10-second clips are already uploaded and analyzed. Select a sample,
-          open its saved analysis instantly, then inspect the evidence and verify any alerts.
-        </p>
+    <section id="sample-library" className="space-y-7">
+      <Panel
+        title="Sample Library"
+        action={<span className="inline-flex items-center gap-1.5 text-xs text-ok"><CheckCircleIcon size={14} />5 saved analyses</span>}
+      >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           {PREPARED_SAMPLES.map((item) => (
             <button
@@ -27,21 +27,31 @@ export default function SampleLibrary() {
               type="button"
               aria-pressed={item.id === selectedId}
               onClick={() => { setSelectedId(item.id); setOpened(false); }}
-              className={`overflow-hidden rounded-lg border text-left transition-colors ${
-                item.id === selectedId ? "border-blue-400 bg-blue-500/10" : "border-line bg-canvas hover:border-slate-500"
-              }`}
+              className="sample-tile overflow-hidden text-left transition-colors"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.poster_url} alt="" className="aspect-video w-full object-cover" />
-              <div className="space-y-1 p-3">
-                <p className="text-xs font-semibold text-white">{item.title}</p>
-                <p className="text-[0.7rem] text-emerald-300">10s · Analysis saved</p>
+              <div className="relative aspect-video overflow-hidden bg-raised">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.poster_url} alt="" className="h-full w-full object-cover" />
+                <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 font-mono text-[10px] text-on-dark">00:10</span>
+                {item.id === selectedId && (
+                  <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-on-dark">
+                    <CheckIcon size={15} strokeWidth={2.5} />
+                  </span>
+                )}
+              </div>
+              <div className="sample-tile-body min-h-[76px] space-y-1 px-3 py-3">
+                <p className="text-[13px] font-semibold leading-snug text-ink">{item.title}</p>
+                <p className="flex items-center gap-1.5 text-[11px] text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-ok" />
+                  {item.result.incidents_created ?? 0} {(item.result.incidents_created ?? 0) === 1 ? "alert" : "alerts"} · Analysis saved
+                </p>
               </div>
             </button>
           ))}
         </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-lg border border-line bg-black">
+
+        <div className="sample-inspector mt-7">
+          <div className="media-surface relative">
             <video
               key={`${sample.id}-${opened}`}
               src={opened ? result.processed_video_url ?? sample.video_url : sample.video_url}
@@ -50,44 +60,60 @@ export default function SampleLibrary() {
               className="aspect-video w-full object-contain"
               aria-label={`${sample.title} ${opened ? "analyzed video" : "sample preview"}`}
             />
+            <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded bg-black/70 px-2 py-1 text-[10px] font-medium text-on-dark">
+              <VideoIcon size={12} />{opened ? "Analyzed footage" : "Original footage"}
+            </span>
           </div>
-          <div className="flex flex-col justify-center gap-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-blue-300">{opened ? "Step 2 · Inspect & verify" : "Step 1 · Open analysis"}</p>
-            <h3 className="text-lg font-semibold text-white">{sample.title}</h3>
-            <p className="text-xs text-muted break-all">{sample.filename}</p>
-            <p className="text-sm text-slate-300">
-              {opened
-                ? `${result.incidents_created ?? 0} saved alerts · ${result.people_tracked ?? 0} people tracked · ${result.vehicles_tracked ?? 0} vehicles tracked`
-                : "The video, detection results and evidence frames are ready. No upload or processing queue is needed."}
+          <div className="sample-details space-y-4">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-accent">
+              {opened ? <CheckCircleIcon size={14} /> : <VideoIcon size={14} />}
+              {opened ? "Analysis loaded" : "Saved analysis available"}
             </p>
+            <div>
+              <h3 className="text-[22px] font-bold leading-tight text-ink">{sample.title}</h3>
+              <p className="mt-2 break-all font-mono text-[11px] text-muted">{sample.filename}</p>
+            </div>
+            <div className="grid grid-cols-3 border-y border-line py-4">
+              {[
+                ["Alerts", result.incidents_created ?? 0],
+                ["People", result.people_tracked ?? 0],
+                ["Vehicles", result.vehicles_tracked ?? 0],
+              ].map(([label, value]) => (
+                <div key={label} className="sample-stat px-3 first:pl-0">
+                  <p className="text-[24px] font-bold leading-none tabular-nums text-ink">{value}</p>
+                  <p className="mt-2 text-[11px] text-muted">{label}</p>
+                </div>
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => setOpened(true)}
-              className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
+              className="button-primary flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-accent-hover"
             >
-              {opened ? "Saved Analysis Loaded" : "Run Analysis · Instant Saved Result"}
+              {opened ? <CheckCircleIcon size={16} /> : <PlayIcon size={16} />}
+              {opened ? "Saved analysis loaded" : "Open saved analysis"}
+              {!opened && <ArrowRightIcon size={16} className="ml-auto" />}
             </button>
-            {opened && (
-              <p className="text-xs text-emerald-300" role="status">
-                Loaded from saved analysis. Original processing took {result.processing_duration_seconds?.toFixed(1)}s.
-                Select an alert below to inspect and record your decision.
-              </p>
-            )}
+            <p className="text-[11px] leading-relaxed text-muted" role={opened ? "status" : undefined}>
+              {opened
+                ? `Original processing time: ${result.processing_duration_seconds?.toFixed(1)}s. Results require human verification.`
+                : "10-second clip · Results and evidence ready"}
+            </p>
           </div>
         </div>
       </Panel>
       {opened && (
-        <Panel title={`Saved Detection Results (${result.incidents?.length ?? 0})`}>
+        <Panel
+          title={`Detection Results (${result.incidents?.length ?? 0})`}
+          action={<Link className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline" href="/incidents">Review queue<ArrowRightIcon size={14} /></Link>}
+        >
           {result.incidents?.length ? (
-            <div className="divide-y divide-line">
+            <div className="incident-list divide-y divide-line">
               {result.incidents.map((incident) => <IncidentCard key={incident.id} incident={incident} />)}
             </div>
           ) : (
-            <EmptyState title="No automatic alerts in this clip" hint="The pipeline completed but did not flag an incident. Inspect the saved video above; a sample's title does not guarantee detection." />
+            <EmptyState title="No automatic alerts in this clip" hint="The pipeline completed without flagging an incident. A sample's title does not guarantee detection." />
           )}
-          <p className="mt-3 text-xs text-muted">
-            Saved detector output requires human judgment. <Link className="text-blue-300 hover:underline" href="/incidents">Open the verification queue →</Link>
-          </p>
         </Panel>
       )}
     </section>

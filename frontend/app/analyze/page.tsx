@@ -12,12 +12,12 @@ export default function AnalyzePage() {
     <div className="space-y-6">
       <PageHeader
         title="Analyze Video"
-        subtitle="Open a prepared sample instantly, inspect its results, and verify alerts. You can also upload your own footage."
+        subtitle="A closer look at your footage, with evidence ready for human review."
       />
 
       <SampleLibrary />
-      <details className="rounded-xl border border-line bg-canvas p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-200">Upload & analyze a new video</summary>
+      <details className="border-y border-line bg-surface px-5 py-5">
+        <summary className="cursor-pointer text-sm font-semibold text-accent">Upload & analyze a new video</summary>
         <div className="mt-5"><AnalyzeForm /></div>
       </details>
 

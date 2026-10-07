@@ -29,22 +29,22 @@ const ASSESSMENT_COPY: Record<
 > = {
   "True Positive": {
     blurb: "The detector was right — this really happened.",
-    classes: "border-rose-500/30 bg-rose-500/5 text-rose-200 hover:bg-rose-500/10",
-    active: "border-rose-500 bg-rose-500/20 text-rose-100 ring-1 ring-rose-500/40",
+    classes: "border-danger/30 bg-danger/5 text-danger hover:bg-danger/10",
+    active: "border-danger bg-danger/10 text-danger ring-1 ring-danger/40",
   },
   "False Positive": {
     blurb: "The detector was wrong — nothing happened here.",
     classes:
-      "border-slate-700 bg-slate-800/40 text-slate-300 hover:bg-slate-800/70",
+      "border-line-strong bg-raised/40 text-ink hover:bg-raised/70",
     active:
-      "border-slate-400 bg-slate-700/60 text-white ring-1 ring-slate-400/40",
+      "border-line-strong bg-raised/60 text-ink ring-1 ring-line-strong/40",
   },
   Unverifiable: {
     blurb: "The footage does not settle it either way.",
     classes:
-      "border-amber-500/30 bg-amber-500/5 text-amber-200 hover:bg-amber-500/10",
+      "border-warn/30 bg-warn/5 text-warn hover:bg-warn/10",
     active:
-      "border-amber-500 bg-amber-500/20 text-amber-100 ring-1 ring-amber-500/40",
+      "border-warn bg-warn/10 text-warn ring-1 ring-warn/40",
   },
 };
 
@@ -148,9 +148,9 @@ export default function ReviewPanel({
       <div>
         <label
           htmlFor="reviewer"
-          className="text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5"
+          className="text-xs font-medium text-ink mb-1 flex items-center gap-1.5"
         >
-          <UserIcon size={13} className="text-slate-400" />
+          <UserIcon size={13} className="text-muted" />
           Reviewer
         </label>
         <input
@@ -161,13 +161,13 @@ export default function ReviewPanel({
           disabled={pending}
           onChange={(e) => setReviewer(e.target.value)}
           placeholder="Name or operator ID"
-          className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-ink focus:border-accent focus:outline-accent"
         />
       </div>
 
       {/* Assessment — was the detector right? */}
       <fieldset>
-        <legend className="text-xs font-medium text-slate-300 mb-1.5">
+        <legend className="text-xs font-medium text-ink mb-1.5">
           Was this detection correct?
         </legend>
         <div className="grid gap-2">
@@ -181,12 +181,12 @@ export default function ReviewPanel({
                 aria-pressed={selected}
                 disabled={pending}
                 onClick={() => pickAssessment(option)}
-                className={`rounded-lg border px-3 py-2 text-left transition-all disabled:opacity-50 ${
+                className={`min-h-[66px] rounded-md border px-3 py-3 text-left transition-all disabled:opacity-50 ${
                   selected ? copy.active : copy.classes
                 }`}
               >
                 <span className="block text-xs font-semibold">{option}</span>
-                <span className="block text-[0.7rem] opacity-80">
+                <span className="mt-1 block text-[0.7rem] leading-relaxed opacity-80">
                   {copy.blurb}
                 </span>
               </button>
@@ -199,7 +199,7 @@ export default function ReviewPanel({
       <div>
         <label
           htmlFor="review-status"
-          className="text-xs font-medium text-slate-300 block mb-1"
+          className="text-xs font-medium text-ink block mb-1"
         >
           Set status
         </label>
@@ -211,7 +211,7 @@ export default function ReviewPanel({
             setStatus(e.target.value);
             setMessage(null);
           }}
-          className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-ink focus:border-accent focus:outline-accent"
         >
           {STATUSES.map((option) => (
             <option key={option} value={option}>
@@ -231,7 +231,7 @@ export default function ReviewPanel({
       <div>
         <label
           htmlFor="review-notes"
-          className="text-xs font-medium text-slate-300 flex items-center justify-between mb-1"
+          className="text-xs font-medium text-ink flex items-center justify-between mb-1"
         >
           <span>Notes</span>
           <span className="font-mono text-[0.7rem] text-muted">
@@ -246,7 +246,7 @@ export default function ReviewPanel({
           disabled={pending}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="What you saw in the footage, and anything the next reviewer should know."
-          className="w-full resize-y rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+          className="w-full resize-y rounded-lg border border-line bg-canvas px-3 py-2 text-xs text-ink focus:border-accent focus:outline-accent"
         />
       </div>
 
@@ -254,17 +254,17 @@ export default function ReviewPanel({
       <label
         className={`flex items-center justify-between gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
           escalated
-            ? "border-rose-500/40 bg-rose-500/10"
+            ? "border-danger/40 bg-danger/10"
             : "border-line bg-canvas hover:bg-raised/40"
         }`}
       >
         <span className="flex items-start gap-2.5">
           <SirenIcon
             size={15}
-            className={escalated ? "text-rose-400" : "text-slate-400"}
+            className={escalated ? "text-danger" : "text-muted"}
           />
           <span>
-            <span className="block text-xs font-medium text-white">
+            <span className="block text-xs font-medium text-ink">
               Escalate to a supervisor
             </span>
             <span className="block text-[0.7rem] text-muted">
@@ -277,7 +277,7 @@ export default function ReviewPanel({
           checked={escalated}
           disabled={pending}
           onChange={(e) => setEscalated(e.target.checked)}
-          className="h-4 w-4 shrink-0 rounded accent-rose-600"
+          className="h-4 w-4 shrink-0 rounded accent-danger"
         />
       </label>
 
@@ -285,7 +285,7 @@ export default function ReviewPanel({
         type="button"
         onClick={save}
         disabled={pending}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50 disabled:pointer-events-none"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-lg button-primary bg-accent hover:bg-accent-hover px-4 py-2.5 text-sm font-semibold text-ink transition-colors disabled:opacity-50 disabled:pointer-events-none"
       >
         {pending ? (
           <RefreshIcon size={15} className="animate-spin" />
@@ -300,14 +300,14 @@ export default function ReviewPanel({
           aria-live="polite"
           className={`flex items-center gap-2 rounded-lg border p-3 text-xs font-medium ${
             message.kind === "ok"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-              : "border-rose-500/40 bg-rose-500/10 text-rose-300"
+              ? "border-ok/40 bg-ok/10 text-ok"
+              : "border-danger/40 bg-danger/10 text-danger"
           }`}
         >
           {message.kind === "ok" ? (
-            <CheckCircleIcon size={15} className="text-emerald-400 shrink-0" />
+            <CheckCircleIcon size={15} className="text-ok shrink-0" />
           ) : (
-            <XCircleIcon size={15} className="text-rose-400 shrink-0" />
+            <XCircleIcon size={15} className="text-danger shrink-0" />
           )}
           <span>{message.text}</span>
         </div>

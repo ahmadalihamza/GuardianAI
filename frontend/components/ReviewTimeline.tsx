@@ -36,7 +36,7 @@ export default function ReviewTimeline({
             className="relative rounded-lg border border-line bg-canvas p-3 pl-9"
           >
             {/* Step marker + connector */}
-            <span className="absolute left-3 top-3.5 flex h-4 w-4 items-center justify-center rounded-full border border-line bg-raised text-[0.6rem] font-mono font-semibold text-slate-300">
+            <span className="absolute left-3 top-3.5 flex h-4 w-4 items-center justify-center rounded-full border border-line bg-raised text-[0.6rem] font-mono font-semibold text-ink">
               {index + 1}
             </span>
             {index < reviews.length - 1 && (
@@ -47,7 +47,7 @@ export default function ReviewTimeline({
             )}
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-white">
+              <span className="text-xs font-semibold text-ink">
                 {review.reviewer}
               </span>
               {review.assessment && (
@@ -60,7 +60,7 @@ export default function ReviewTimeline({
                 </span>
               )}
               {review.escalated ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-[0.7rem] font-medium text-rose-300">
+                <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/10 px-2 py-0.5 text-[0.7rem] font-medium text-danger">
                   <SirenIcon size={11} />
                   Escalated
                 </span>
@@ -83,7 +83,7 @@ export default function ReviewTimeline({
             </div>
 
             {review.notes && (
-              <p className="mt-2 border-l-2 border-line pl-2.5 text-xs leading-relaxed text-slate-300">
+              <p className="mt-2 border-l-2 border-line pl-2.5 text-xs leading-relaxed text-ink">
                 {review.notes}
               </p>
             )}

@@ -9,7 +9,7 @@ export function SeverityBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${theme.pill}`}
+      className={`status-pill inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-semibold ${theme.pill}`}
     >
       {severity ?? "Unknown"}
     </span>
@@ -19,7 +19,7 @@ export function SeverityBadge({
 export function StatusBadge({ status }: { status: string | null | undefined }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyle(
+      className={`status-pill inline-flex items-center rounded-md border px-2.5 py-0.5 text-[11px] font-semibold ${statusStyle(
         status,
       )}`}
     >
@@ -32,10 +32,10 @@ export function RiskBadge({ score }: { score: number | null | undefined }) {
   const num = score ?? 0;
   const color =
     num >= 70
-      ? "text-rose-400 bg-rose-500/10 border-rose-500/20"
+      ? "text-danger bg-danger/10 border-danger/20"
       : num >= 40
-      ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+      ? "text-warn bg-warn/10 border-warn/20"
+      : "text-ok bg-ok/10 border-ok/20";
 
   return (
     <span

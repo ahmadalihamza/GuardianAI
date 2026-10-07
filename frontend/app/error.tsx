@@ -18,7 +18,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-lg rounded-xl border border-danger/60 bg-danger/5 px-6 py-8 text-center">
+    <div className="mx-auto max-w-lg rounded-lg border border-danger/60 bg-danger/5 px-6 py-8 text-center">
       <p aria-hidden className="text-3xl">
         ⚠️
       </p>
@@ -37,7 +37,7 @@ export default function Error({
       <button
         type="button"
         onClick={reset}
-        className="mt-5 rounded-md bg-action px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-action-hover"
+        className="mt-5 rounded-md bg-action px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-action-hover"
       >
         Try again
       </button>

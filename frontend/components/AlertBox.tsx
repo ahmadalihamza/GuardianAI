@@ -14,7 +14,7 @@ export default function AlertBox({
 
   return (
     <div
-      className={`rounded-xl border ${theme.border} bg-surface p-4 flex items-center gap-3.5`}
+      className={`rounded-lg border ${theme.border} bg-surface p-4 flex items-center gap-3.5`}
       role="status"
     >
       <div

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClockIcon, CheckCircleIcon } from "@/components/Icons";
+import { ClockIcon, ShieldIcon } from "@/components/Icons";
 
 export default function TopBar() {
   const [timeStr, setTimeStr] = useState<string>("");
@@ -25,11 +25,11 @@ export default function TopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 hidden border-b border-line bg-surface/80 backdrop-blur-md px-6 py-3 lg:flex items-center justify-between">
+    <header className="sticky top-0 z-10 hidden border-b border-line bg-surface/95 backdrop-blur-sm px-8 py-4 lg:flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-        <span className="text-xs font-medium text-slate-300">
-          Surveillance Monitoring Active
+        <ShieldIcon size={16} className="text-accent" />
+        <span className="text-xs font-medium text-ink">
+          Human-in-the-loop monitoring
         </span>
       </div>
 
@@ -39,7 +39,7 @@ export default function TopBar() {
             className="flex items-center gap-1.5 font-medium"
             suppressHydrationWarning
           >
-            <ClockIcon size={14} className="text-slate-400" />
+            <ClockIcon size={14} className="text-muted" />
             <span suppressHydrationWarning>{timeStr}</span>
           </div>
         )}

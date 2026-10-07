@@ -161,12 +161,12 @@ export default async function SystemPage() {
       />
 
       {/* Health status metrics */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <MetricCard
           value={isOnline ? "Online" : "Offline"}
           label="Backend API"
           status={isOnline ? "ok" : "danger"}
-          icon={<ServerIcon size={14} />}
+          icon={<ServerIcon size={18} />}
           hint="FastAPI • Port 8000"
           badge={isOnline ? "200 OK" : "Error"}
         />
@@ -174,7 +174,7 @@ export default async function SystemPage() {
           value={health.model_loaded ? "Loaded" : "Missing"}
           label="YOLO11n Model"
           status={health.model_loaded ? "ok" : "danger"}
-          icon={<CpuIcon size={14} />}
+          icon={<CpuIcon size={18} />}
           hint="In-Memory Engine"
           badge="Nano CPU"
         />
@@ -182,7 +182,7 @@ export default async function SystemPage() {
           value={health.database_connected ? "Connected" : "Disconnected"}
           label="Database"
           status={health.database_connected ? "ok" : "danger"}
-          icon={<DatabaseIcon size={14} />}
+          icon={<DatabaseIcon size={18} />}
           hint="SQLite Store"
           badge="WAL Mode"
         />
@@ -190,21 +190,21 @@ export default async function SystemPage() {
           value={`v${health.version ?? "1.0.0"}`}
           label="Platform Version"
           status="info"
-          icon={<ShieldIcon size={14} />}
+          icon={<ShieldIcon size={18} />}
           hint="GuardianAI Engine"
           badge="Production"
         />
       </div>
 
       {/* Models & Workflow */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="workspace-band grid gap-8 lg:grid-cols-2">
         <Panel title="Detection Models">
           <div className="space-y-3">
             {MODELS.map((item) => (
               <div key={item.label} className="rounded-lg bg-canvas border border-line p-3">
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex flex-col gap-1 text-xs sm:flex-row sm:flex-wrap sm:justify-between">
                   <span className="text-muted font-medium">{item.label}</span>
-                  <span className="font-semibold text-slate-200">{item.value}</span>
+                  <span className="font-semibold text-ink">{item.value}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted">{item.detail}</p>
               </div>
@@ -216,7 +216,7 @@ export default async function SystemPage() {
           <ol className="space-y-2.5">
             {WORKFLOW.map((item) => (
               <li key={item.title} className="text-xs">
-                <span className="font-semibold text-white block">{item.title}</span>
+                <span className="font-semibold text-ink block">{item.title}</span>
                 <span className="text-muted leading-relaxed block mt-0.5">{item.desc}</span>
               </li>
             ))}
@@ -227,14 +227,14 @@ export default async function SystemPage() {
       {/* What each detector actually is */}
       <Panel title="Detection Capabilities">
         <div className="space-y-3">
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-ink">
             Five detectors run in parallel over a single YOLO11n pass. Each is
             listed with the evidence it actually relies on, so a reviewer knows
             how much weight an alert deserves.
           </p>
 
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-xs">
+            <table className="w-full min-w-[600px] border-collapse text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-muted">
                   <th className="py-2 px-3">Detector</th>
@@ -246,20 +246,20 @@ export default async function SystemPage() {
               <tbody>
                 {CAPABILITIES.map((item) => (
                   <tr key={item.name} className="border-b border-line/60 align-top">
-                    <td className="py-2.5 px-3 font-medium text-white whitespace-nowrap">
+                    <td className="py-2.5 px-3 font-medium text-ink whitespace-nowrap">
                       {item.name}
                       <span className="mt-0.5 block font-normal text-[0.7rem] text-muted whitespace-normal max-w-[15rem]">
                         {item.note}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-muted">{item.events}</td>
-                    <td className="py-2.5 px-3 text-slate-300">{item.basis}</td>
+                    <td className="py-2.5 px-3 text-ink">{item.basis}</td>
                     <td className="py-2.5 px-3">
                       <span
                         className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[0.65rem] font-medium whitespace-nowrap ${
                           item.trained
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                            : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                            ? "border-ok/40 bg-ok/10 text-ok"
+                            : "border-warn/40 bg-warn/10 text-warn"
                         }`}
                       >
                         {item.trained ? "Yes" : "Heuristic"}
@@ -271,13 +271,13 @@ export default async function SystemPage() {
             </table>
           </div>
 
-          <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[0.7rem] leading-relaxed text-amber-200/90">
+          <p className="rounded-lg border border-warn/30 bg-warn/5 p-3 text-[0.7rem] leading-relaxed text-warn/90">
             <strong>Read this before trusting a heuristic detector.</strong> Fire,
             smoke and weapon alerts are inferred from colour, flicker and COCO
             proxy classes — not from a model trained on fire or firearms. They
             are useful as a prompt for a human to look, and nothing more. Set{" "}
-            <code className="font-mono text-amber-100">FIRE_MODEL_PATH</code> or{" "}
-            <code className="font-mono text-amber-100">WEAPON_MODEL_PATH</code> to
+            <code className="font-mono text-warn">FIRE_MODEL_PATH</code> or{" "}
+            <code className="font-mono text-warn">WEAPON_MODEL_PATH</code> to
             your own trained weights to replace the heuristic.
           </p>
         </div>
@@ -286,7 +286,7 @@ export default async function SystemPage() {
       {/* Risk formula */}
       <Panel title="Risk Score Calculation">
         <div className="space-y-3">
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-ink">
             Detected events receive a normalized risk score from <strong>0 to 100</strong> based on four weighted factors:
           </p>
 
@@ -302,8 +302,8 @@ export default async function SystemPage() {
               <tbody>
                 {RISK_ROWS.map((row) => (
                   <tr key={row.component} className="border-b border-line/60">
-                    <td className="py-2 px-3 font-medium text-white">{row.component}</td>
-                    <td className="py-2 px-3 font-mono text-blue-400 font-semibold">
+                    <td className="py-2 px-3 font-medium text-ink">{row.component}</td>
+                    <td className="py-2 px-3 font-mono text-accent font-semibold">
                       {Math.round(row.weight * 100)}%
                     </td>
                     <td className="py-2 px-3 text-muted">{row.description}</td>
@@ -322,17 +322,17 @@ export default async function SystemPage() {
       {/* Reviewer analytics — the accuracy record of the deployment itself */}
       <Panel title="Verification Record">
         <div className="space-y-3">
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-ink">
             Measured accuracy of this deployment, derived entirely from operator
             sign-offs rather than from model self-reporting.
           </p>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <MetricCard
               value={`${coverage}%`}
               label="Review Coverage"
               status={coverage >= 100 ? "ok" : "info"}
-              icon={<CheckCircleIcon size={14} />}
+              icon={<CheckCircleIcon size={18} />}
               hint={`${stats.reviewed_count} of ${stats.total_incidents} judged`}
               badge={coverage >= 100 ? "Complete" : "In progress"}
             />
@@ -340,7 +340,7 @@ export default async function SystemPage() {
               value={formatRate(stats.false_positive_rate)}
               label="False Positive Rate"
               status="info"
-              icon={<AlertTriangleIcon size={14} />}
+              icon={<AlertTriangleIcon size={18} />}
               hint="Excludes Unverifiable"
               badge="Operator-judged"
             />
@@ -348,7 +348,7 @@ export default async function SystemPage() {
               value={formatDuration(stats.mean_seconds_to_review)}
               label="Mean Time to Review"
               status="info"
-              icon={<ClockIcon size={14} />}
+              icon={<ClockIcon size={18} />}
               hint="Creation to sign-off"
               badge="Rolling mean"
             />
@@ -356,7 +356,7 @@ export default async function SystemPage() {
               value={stats.critical_pending}
               label="Critical Unreviewed"
               status={stats.critical_pending > 0 ? "danger" : "ok"}
-              icon={<SirenIcon size={14} />}
+              icon={<SirenIcon size={18} />}
               hint="Weapons, fire, collisions"
               badge={stats.critical_pending > 0 ? "Review first" : "Clear"}
             />
@@ -374,10 +374,10 @@ export default async function SystemPage() {
 
       {/* Privacy */}
       <Panel title="Privacy & Security Safeguards">
-        <ul className="space-y-2 text-xs text-slate-300">
+        <ul className="space-y-2 text-xs text-ink">
           {PRIVACY.map((item) => (
             <li key={item} className="flex items-start gap-2">
-              <span className="text-blue-400 font-bold">•</span>
+              <span className="text-accent font-bold">•</span>
               <span>{item}</span>
             </li>
           ))}

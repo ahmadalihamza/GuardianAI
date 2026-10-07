@@ -14,9 +14,9 @@ import type { Statistics } from "@/lib/types";
  */
 
 const ASSESSMENT_COLORS: Record<string, string> = {
-  "True Positive": "#f43f5e",
-  "False Positive": "#64748b",
-  Unverifiable: "#f59e0b",
+  "True Positive": "#dc6259",
+  "False Positive": "#70827b",
+  Unverifiable: "#cf9d40",
 };
 
 export default function VerificationPanel({ stats }: { stats: Statistics }) {
@@ -43,25 +43,25 @@ export default function VerificationPanel({ stats }: { stats: Statistics }) {
     <div className="space-y-4">
       {/* Headline numbers */}
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-lg border border-line bg-canvas p-3">
+        <div className="min-w-0 border-r border-line pr-3 last:border-r-0">
           <p className="text-[0.7rem] font-medium text-muted">False Positives</p>
-          <p className="mt-1 text-lg font-bold tabular-nums text-white">
+          <p className="mt-1 text-[22px] font-bold tabular-nums text-ink">
             {formatRate(stats.false_positive_rate)}
           </p>
           <p className="mt-0.5 text-[0.65rem] text-muted">of judged incidents</p>
         </div>
-        <div className="rounded-lg border border-line bg-canvas p-3">
+        <div className="min-w-0 border-r border-line pr-3 last:border-r-0">
           <p className="text-[0.7rem] font-medium text-muted">Mean Time to Review</p>
-          <p className="mt-1 text-lg font-bold tabular-nums text-white">
+          <p className="mt-1 text-[22px] font-bold tabular-nums text-ink">
             {formatDuration(stats.mean_seconds_to_review)}
           </p>
           <p className="mt-0.5 text-[0.65rem] text-muted">creation to sign-off</p>
         </div>
-        <div className="rounded-lg border border-line bg-canvas p-3">
+        <div className="min-w-0 border-r border-line pr-3 last:border-r-0">
           <p className="text-[0.7rem] font-medium text-muted">Critical Pending</p>
           <p
-            className={`mt-1 text-lg font-bold tabular-nums ${
-              stats.critical_pending > 0 ? "text-rose-400" : "text-white"
+            className={`mt-1 text-[22px] font-bold tabular-nums ${
+              stats.critical_pending > 0 ? "text-danger" : "text-ink"
             }`}
           >
             {stats.critical_pending}
@@ -73,14 +73,14 @@ export default function VerificationPanel({ stats }: { stats: Statistics }) {
       {/* Review coverage */}
       <div>
         <div className="flex items-baseline justify-between text-xs mb-1.5">
-          <span className="font-medium text-slate-300">Review coverage</span>
+          <span className="font-medium text-ink">Review coverage</span>
           <span className="font-mono text-muted">
             {reviewed} of {total} ({Math.round(coverage * 100)}%)
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-raised">
           <div
-            className="h-full rounded-full bg-sky-500 transition-all duration-500"
+            className="h-full rounded-full bg-accent transition-all duration-500"
             style={{ width: `${Math.min(100, coverage * 100)}%` }}
           />
         </div>
@@ -88,7 +88,7 @@ export default function VerificationPanel({ stats }: { stats: Statistics }) {
 
       {/* Assessment split */}
       <div>
-        <span className="mb-1.5 block text-xs font-medium text-slate-300">
+        <span className="mb-1.5 block text-xs font-medium text-ink">
           Operator assessments
         </span>
         {judged === 0 ? (
@@ -123,7 +123,7 @@ export default function VerificationPanel({ stats }: { stats: Statistics }) {
                   key={segment.label}
                   className="flex items-center justify-between text-xs"
                 >
-                  <span className="flex items-center gap-2 text-slate-300">
+                  <span className="flex items-center gap-2 text-ink">
                     <span
                       aria-hidden
                       className="h-2 w-2 shrink-0 rounded-full"
@@ -146,7 +146,7 @@ export default function VerificationPanel({ stats }: { stats: Statistics }) {
 
       <p className="text-[0.7rem] leading-relaxed text-muted">
         The false-positive rate counts only incidents judged True or False.
-        Footage marked <strong className="text-slate-300">Unverifiable</strong> is
+        Footage marked <strong className="text-ink">Unverifiable</strong> is
         excluded rather than guessed at.
       </p>
     </div>

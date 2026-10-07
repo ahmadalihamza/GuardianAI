@@ -24,33 +24,33 @@ export interface SeverityTheme {
 
 const SEVERITY_THEMES: Record<string, SeverityTheme> = {
   High: {
-    hex: "#f43f5e",
-    text: "text-rose-400",
-    border: "border-rose-500/40",
-    pill: "bg-rose-500/15 text-rose-300 border border-rose-500/30",
+    hex: "#dc6259",
+    text: "text-danger",
+    border: "border-danger/40",
+    pill: "bg-danger/10 text-danger border border-danger/30",
     gradient: "glow-danger",
   },
   Medium: {
-    hex: "#f59e0b",
-    text: "text-amber-400",
-    border: "border-amber-500/40",
-    pill: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
+    hex: "#cf9d40",
+    text: "text-warn",
+    border: "border-warn/40",
+    pill: "bg-warn/10 text-warn border border-warn/30",
     gradient: "glow-warn",
   },
   Low: {
-    hex: "#10b981",
-    text: "text-emerald-400",
-    border: "border-emerald-500/40",
-    pill: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+    hex: "#269474",
+    text: "text-ok",
+    border: "border-ok/40",
+    pill: "bg-ok/10 text-ok border border-ok/30",
     gradient: "glow-ok",
   },
 };
 
 const FALLBACK_THEME: SeverityTheme = {
-  hex: "#38bdf8",
-  text: "text-sky-400",
-  border: "border-sky-500/40",
-  pill: "bg-sky-500/15 text-sky-300 border border-sky-500/30",
+  hex: "#609f90",
+  text: "text-accent",
+  border: "border-accent/40",
+  pill: "bg-accent/10 text-accent border border-accent/30",
   gradient: "glow-accent",
 };
 
@@ -59,20 +59,20 @@ export function severityTheme(severity: string | null | undefined): SeverityThem
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  "Pending Verification": "border-amber-500/40 bg-amber-500/10 text-amber-300",
-  Verified: "border-sky-500/40 bg-sky-500/10 text-sky-300",
-  Dismissed: "border-slate-700/60 bg-slate-800/40 text-slate-400",
-  Resolved: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+  "Pending Verification": "border-warn/40 bg-warn/10 text-warn",
+  Verified: "border-accent/40 bg-accent/10 text-accent",
+  Dismissed: "border-line-strong/60 bg-raised/40 text-muted",
+  Resolved: "border-ok/40 bg-ok/10 text-ok",
 };
 
 export function statusStyle(status: string | null | undefined): string {
-  return (status && STATUS_STYLES[status]) || "border-slate-700/60 bg-slate-800/40 text-slate-400";
+  return (status && STATUS_STYLES[status]) || "border-line-strong/60 bg-raised/40 text-muted";
 }
 
 const ASSESSMENT_STYLES: Record<string, string> = {
-  "True Positive": "border-rose-500/40 bg-rose-500/10 text-rose-300",
-  "False Positive": "border-slate-700/60 bg-slate-800/40 text-slate-400",
-  Unverifiable: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+  "True Positive": "border-danger/40 bg-danger/10 text-danger",
+  "False Positive": "border-line-strong/60 bg-raised/40 text-muted",
+  Unverifiable: "border-warn/40 bg-warn/10 text-warn",
 };
 
 export function assessmentStyle(
@@ -80,7 +80,7 @@ export function assessmentStyle(
 ): string {
   return (
     (assessment && ASSESSMENT_STYLES[assessment]) ||
-    "border-slate-700/60 bg-slate-800/40 text-slate-400"
+    "border-line-strong/60 bg-raised/40 text-muted"
   );
 }
 
@@ -99,9 +99,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Fire/,
     theme: {
       group: "Fire & Smoke",
-      hex: "#f97316",
-      text: "text-orange-400",
-      pill: "bg-orange-500/15 text-orange-300 border border-orange-500/30",
+      hex: "#df8c51",
+      text: "text-warn",
+      pill: "bg-orange-500/15 text-warn border border-orange-500/30",
       glyph: "🔥",
     },
   },
@@ -109,9 +109,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Smoke/,
     theme: {
       group: "Fire & Smoke",
-      hex: "#94a3b8",
-      text: "text-slate-300",
-      pill: "bg-slate-500/15 text-slate-300 border border-slate-500/30",
+      hex: "#869593",
+      text: "text-ink",
+      pill: "bg-slate-500/15 text-ink border border-line-strong/30",
       glyph: "🌫️",
     },
   },
@@ -119,9 +119,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Weapon|Armed/,
     theme: {
       group: "Weapons",
-      hex: "#a855f7",
-      text: "text-purple-400",
-      pill: "bg-purple-500/15 text-purple-300 border border-purple-500/30",
+      hex: "#937096",
+      text: "text-violet",
+      pill: "bg-purple-500/15 text-violet border border-purple-500/30",
       glyph: "🔪",
     },
   },
@@ -129,9 +129,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Vehicle/,
     theme: {
       group: "Traffic",
-      hex: "#06b6d4",
-      text: "text-cyan-400",
-      pill: "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30",
+      hex: "#168578",
+      text: "text-accent",
+      pill: "bg-accent/10 text-accent border border-accent/30",
       glyph: "🚗",
     },
   },
@@ -139,9 +139,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Fall/,
     theme: {
       group: "Personal Safety",
-      hex: "#f43f5e",
-      text: "text-rose-400",
-      pill: "bg-rose-500/15 text-rose-300 border border-rose-500/30",
+      hex: "#dc6259",
+      text: "text-danger",
+      pill: "bg-danger/10 text-danger border border-danger/30",
       glyph: "🚑",
     },
   },
@@ -149,9 +149,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
     match: /Intrusion/,
     theme: {
       group: "Perimeter",
-      hex: "#38bdf8",
-      text: "text-sky-400",
-      pill: "bg-sky-500/15 text-sky-300 border border-sky-500/30",
+      hex: "#609f90",
+      text: "text-accent",
+      pill: "bg-accent/10 text-accent border border-accent/30",
       glyph: "🔒",
     },
   },
@@ -159,9 +159,9 @@ const EVENT_THEMES: ReadonlyArray<{ match: RegExp; theme: EventTheme }> = [
 
 const UNKNOWN_EVENT_THEME: EventTheme = {
   group: "Other",
-  hex: "#64748b",
-  text: "text-slate-400",
-  pill: "bg-slate-500/15 text-slate-300 border border-slate-500/30",
+  hex: "#70827b",
+  text: "text-muted",
+  pill: "bg-slate-500/15 text-ink border border-line-strong/30",
   glyph: "❓",
 };
 
@@ -358,25 +358,25 @@ export function riskContributions(incident: Incident): Array<{
       label: "Confidence",
       weight: RISK_WEIGHTS.confidence,
       value: incident.confidence ?? 0,
-      color: "#58a6ff",
+      color: "#168578",
     },
     {
       label: "Seriousness",
       weight: RISK_WEIGHTS.seriousness,
       value: incident.seriousness_score ?? 0,
-      color: "#f85149",
+      color: "#dc6259",
     },
     {
       label: "Persistence",
       weight: RISK_WEIGHTS.persistence,
       value: incident.persistence_score ?? 0,
-      color: "#d29922",
+      color: "#cf9d40",
     },
     {
       label: "Context",
       weight: RISK_WEIGHTS.context,
       value: incident.context_score ?? 0,
-      color: "#a371f7",
+      color: "#937096",
     },
   ];
   return rows.map((row) => ({

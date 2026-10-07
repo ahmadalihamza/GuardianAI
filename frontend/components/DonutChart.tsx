@@ -7,12 +7,12 @@ export interface Slice {
 }
 
 export const CATEGORY_COLORS = [
-  "#38bdf8",
-  "#f43f5e",
-  "#f59e0b",
-  "#10b981",
-  "#a855f7",
-  "#06b6d4",
+  "#609f90",
+  "#dc6259",
+  "#cf9d40",
+  "#269474",
+  "#937096",
+  "#168578",
 ];
 
 const SIZE = 200;
@@ -64,7 +64,7 @@ export default function DonutChart({
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="#1e293b"
+            stroke="#e4ece6"
             strokeWidth={THICKNESS}
           />
           {arcs.map((arc) => (
@@ -86,20 +86,20 @@ export default function DonutChart({
 
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-3xl font-extrabold text-white tracking-tight tabular-nums">
+          <span className="text-3xl font-extrabold text-ink tracking-normal tabular-nums">
             {total}
           </span>
-          <span className="text-[0.65rem] font-bold uppercase tracking-widest text-muted">
+          <span className="text-[0.65rem] font-bold uppercase tracking-normal text-muted">
             EVENTS
           </span>
         </div>
       </div>
 
-      <ul className="w-full space-y-2.5">
+      <ul className="w-full min-w-0 space-y-1">
         {arcs.map((arc) => (
           <li
             key={arc.label}
-            className="flex items-center justify-between text-xs rounded-lg bg-surface/50 border border-line/40 px-3 py-2"
+            className="flex items-center justify-between gap-3 border-b border-line py-3 text-xs last:border-0"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
@@ -107,12 +107,12 @@ export default function DonutChart({
                 className="h-2.5 w-2.5 shrink-0 rounded-full shadow-sm"
                 style={{ backgroundColor: arc.color }}
               />
-              <span className="truncate font-medium text-slate-200">
+              <span className="break-words font-medium text-ink">
                 {arc.label}
               </span>
             </div>
-            <div className="flex items-center gap-2 font-mono">
-              <span className="text-white font-bold">{arc.value}</span>
+            <div className="flex shrink-0 items-center gap-2 font-mono">
+              <span className="text-ink font-bold">{arc.value}</span>
               <span className="text-[0.65rem] text-muted">
                 ({Math.round(arc.fraction * 100)}%)
               </span>

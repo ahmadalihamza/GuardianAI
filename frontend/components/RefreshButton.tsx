@@ -43,25 +43,25 @@ export default function RefreshButton({
       type="button"
       disabled={loading}
       onClick={handleRefresh}
-      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200 active:scale-95 shadow-sm ${
+      className={`inline-flex h-10 w-[130px] shrink-0 items-center justify-center gap-2 rounded-md border px-3 py-2.5 text-xs font-medium transition-all duration-200 active:scale-95 shadow-sm ${
         updated
-          ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-          : "border-line bg-raised hover:bg-raised-2 text-slate-200 hover:text-white hover:border-slate-600"
+          ? "border-ok/50 bg-ok/10 text-ok"
+          : "border-line bg-raised hover:bg-raised-2 text-ink hover:text-ink hover:border-line-strong"
       }`}
       title="Fetch latest surveillance records from server"
     >
       {updated ? (
-        <CheckCircleIcon size={14} className="text-emerald-400" />
+        <CheckCircleIcon size={14} className="text-ok" />
       ) : (
         <RefreshIcon
           size={14}
-          className={`text-blue-400 transition-transform ${
+          className={`text-accent transition-transform ${
             loading ? "animate-spin" : ""
           }`}
         />
       )}
-      <span>
-        {loading ? "Refreshing..." : updated ? "Updated Just Now" : label}
+      <span className="whitespace-nowrap">
+        {loading ? "Refreshing..." : updated ? "Updated" : label}
       </span>
     </button>
   );
